@@ -100,7 +100,7 @@ void mostrarVersion(){
 		long  caracterCodificandose;
 		salidaCodificada[tamanioArchivoOutput] = '\0';
 
-		for (long i=0, j=0; i<tamanioArchivoInput; i+=3, j+=4) {
+	for (long i=0, j=0; i<tamanioArchivoInput-1; i+=3, j+=4) {
 
 			caracterCodificandose = textoACodificar[i];
 
@@ -187,27 +187,18 @@ void mostrarVersion(){
 
 		tamanioArchivoOutput /= 4;
 		tamanioArchivoOutput *= 3;
-	/*
+
 		int i=tamanioArchivoOutput;
 
 		bool termino = false;
 		while(i>0 && !termino){
-			if (textoACodificar[i] == '=') {
+			if (textoACodificar[i] == '='){
 	            tamanioArchivoOutput--;
-	        }else{
-	        	termino = true;
-	        }
-	        i--;
+      }else{
+      	termino = true;
+      }
+      i--;
 		}
-		*/
-	    for (int i=tamanioArchivoOutput; i-->0; ) {
-	        if (textoACodificar[i] == '=') {
-	            tamanioArchivoOutput--;
-	        } else {
-	            break;
-	        }
-	    }
-
 		return tamanioArchivoOutput;
 	}
 
