@@ -93,7 +93,7 @@ char* codificarTexto(const unsigned char* textoACodificar, long tamanioArchivoIn
 	long  caracterCodificandose;
 	salidaCodificada[tamanioArchivoOutput] = '\0';
 
-	for (long i=0, j=0; i<tamanioArchivoInput; i+=3, j+=4) {
+	for (long i=0, j=0; i<tamanioArchivoInput-1; i+=3, j+=4) {
 
 		caracterCodificandose = textoACodificar[i];
 
