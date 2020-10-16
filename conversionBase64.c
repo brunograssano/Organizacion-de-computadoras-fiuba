@@ -5,8 +5,9 @@
 
 const int CANTIDAD_MINIMA_ARGUMENTOS = 1;
 const int CANTIDAD_ARGUMENTOS_PARA_CODIFICAR = 5;
-const int POS_ARCHIVO_INPUT_ENCODE = 2,POS_COMANDO_OUTPUT = 3,POS_ARCHIVO_OUTPUT_ENCODE = 4;
-
+const int CANTIDAD_ARGUMENTOS_PARA_DECODIFICAR = 6;
+const int POS_ARCHIVO_INPUT_ENCODE = 2,POS_COMANDO_OUTPUT_ENCODE = 3,POS_ARCHIVO_OUTPUT_ENCODE = 4;
+const int POS_ARCHIVO_INPUT_DECODE = 3,POS_COMANDO_OUTPUT_DECODE = 4,POS_ARCHIVO_OUTPUT_DECODE = 5;
 const int ARCHIVO_VACIO = 0;
 
 #define MODO_LECTURA "r"
@@ -44,7 +45,7 @@ bool esMultiploDeTres(long tamanioArchivoInput){
 	return tamanioArchivoInput % 3 == 0;
 }
 
-long calcularTamanioArchivoSalida(long tamanioArchivoInput){
+long calcularTamanioArchivoSalidaBase64(long tamanioArchivoInput){
 	long tamanioArchivoOutput = tamanioArchivoInput;
 
 	if (!esMultiploDeTres(tamanioArchivoInput)){
@@ -79,7 +80,7 @@ char* codificarTexto(const unsigned char* textoACodificar, long tamanioArchivoIn
 		return NULL;
 	}
 
-	long tamanioArchivoOutput = calcularTamanioArchivoSalida(tamanioArchivoInput);
+	long tamanioArchivoOutput = calcularTamanioArchivoSalidaBase64(tamanioArchivoInput);
 	char* salidaCodificada  = malloc(tamanioArchivoOutput+1);
 	if(salidaCodificada == NULL){
 		printf("Ha ocurrido un error durante la codificacion.\n");
@@ -138,7 +139,7 @@ void hacerConversionABase64(FILE* archivoInput, FILE* archivoOuput){
 
 void convertirABase64(int cantidadArgumentos, char* argumentos[]){
 
-	if( (cantidadArgumentos == CANTIDAD_ARGUMENTOS_PARA_CODIFICAR) && (strcmp(argumentos[POS_COMANDO_OUTPUT],OUTPUT) == 0) ){
+	if( (cantidadArgumentos == CANTIDAD_ARGUMENTOS_PARA_CODIFICAR) && (strcmp(argumentos[POS_COMANDO_OUTPUT_ENCODE],OUTPUT) == 0) ){
 
 		FILE* archivoInput = fopen(argumentos[POS_ARCHIVO_INPUT_ENCODE], MODO_LECTURA);
 		if(archivoInput == NULL){
@@ -163,6 +164,146 @@ void convertirABase64(int cantidadArgumentos, char* argumentos[]){
 		printf("Faltan argumentos para poder codificar.");
 		imprimirAyuda();
 	}
+}
+
+long calcularTamanioArchivoSalidaDeTexto(const unsigned char* textoACodificar, long tamanioArchivoInput){
+
+	long tamanioArchivoOutput = tamanioArchivoInput;
+
+	tamanioArchivoOutput /= 4;
+	tamanioArchivoOutput *= 3;
+/*
+	int i=tamanioArchivoOutput;
+	
+	bool termino = false;
+	while(i>0 && !termino){		
+		if (textoACodificar[i] == '=') {
+            tamanioArchivoOutput--;
+        }else{
+        	termino = true;
+        }
+        i--; 
+	}
+	*/
+    for (int i=tamanioArchivoOutput; i-->0; ) {
+        if (textoACodificar[i] == '=') {
+            tamanioArchivoOutput--;
+        } else {
+            break;
+        }
+    }
+    
+	return tamanioArchivoOutput;
+}
+
+bool esCaracterValido(char caracter){
+	return ((caracter >= '0' && caracter <= '9') || (caracter >= 'A' && caracter <= 'Z') || (caracter >= 'a' && caracter <= 'z') || (caracter == '+' || caracter == '/' || caracter == '='));
+}
+
+char* decodificarBase64ATexto(const unsigned char* textoADecodificar, long tamanioArchivoInput){
+
+	if (tamanioArchivoInput == ARCHIVO_VACIO){
+		printf("El archivo esta vacio, no hay nada para decodificar.\n");
+		return NULL;
+	}
+/*
+	if (tamanioArchivoInput % 4 != 0){
+		printf("El archivo enviado no puede ser decodificado.\n");
+		return NULL;
+	}
+	
+	for (long i=0; i<tamanioArchivoInput; i++) {
+		if (!esCaracterValido(textoADecodificar[i])) {
+			printf("El archivo enviado no esta en base 64.\n");
+			return NULL;
+		}
+	}
+*/
+	long tamanioArchivoOutput = calcularTamanioArchivoSalidaDeTexto(textoADecodificar, tamanioArchivoInput);
+	char* salidaDecodificada  = malloc(tamanioArchivoOutput+1);
+	if(salidaDecodificada == NULL){
+		printf("Ha ocurrido un error durante la decodificacion.\n");
+		return NULL;
+	}
+
+	int valorAscii[] = { 62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58,
+    59, 60, 61, -1, -1, -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5,
+    6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23, 24, 25, -1, -1, -1, -1, -1, -1, 26, 27, 28,
+    29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42,
+    43, 44, 45, 46, 47, 48, 49, 50, 51 };
+
+    long v;
+	for (long i=0, j=0; i<tamanioArchivoInput; i+=4, j+=3) {
+		v = valorAscii[textoADecodificar[i]-43];
+		v = (v << 6) | valorAscii[textoADecodificar[i+1]-43];
+		v = textoADecodificar[i+2]=='=' ? v << 6 : (v << 6) | valorAscii[textoADecodificar[i+2]-43];
+		v = textoADecodificar[i+3]=='=' ? v << 6 : (v << 6) | valorAscii[textoADecodificar[i+3]-43];
+
+		salidaDecodificada[j] = (v >> 16) & 0xFF;
+		if (textoADecodificar[i+2] != '=')
+			salidaDecodificada[j+1] = (v >> 8) & 0xFF;
+		if (textoADecodificar[i+3] != '=')
+			salidaDecodificada[j+2] = v & 0xFF;
+	}	
+
+	return salidaDecodificada;
+}
+
+void hacerConversionATexto(FILE* archivoInput, FILE* archivoOuput){
+
+	fseek(archivoInput, 0, SEEK_END);
+	long tamanioArchivoInput = ftell(archivoInput);
+	fseek(archivoInput, 0, SEEK_SET);
+
+	unsigned char *textoACodificar = malloc(tamanioArchivoInput + 1);
+	if(textoACodificar==NULL){
+		printf("Ha ocurrido un error durante la decodificacion.\n");
+		return;
+	}
+
+	fread(textoACodificar, 1, tamanioArchivoInput, archivoInput);
+
+	char* salidaCodificada = decodificarBase64ATexto(textoACodificar, tamanioArchivoInput);
+	if(salidaCodificada==NULL){
+		free(textoACodificar);
+		return;
+	}
+
+	fprintf(archivoOuput, "%s\n", salidaCodificada);
+
+	free(textoACodificar);
+	free(salidaCodificada);
+}
+
+
+void decodificarATexto(int cantidadArgumentos, char* argumentos[]){
+
+	if( (cantidadArgumentos == CANTIDAD_ARGUMENTOS_PARA_DECODIFICAR) && (strcmp(argumentos[POS_COMANDO_OUTPUT_DECODE],OUTPUT) == 0) ){
+
+		FILE* archivoInput = fopen(argumentos[POS_ARCHIVO_INPUT_DECODE], MODO_LECTURA);
+		if(archivoInput == NULL){
+			printf("El archivo ingresado para decodificar no existe.");
+			return;
+		}
+
+		FILE* archivoOutput = fopen(argumentos[POS_ARCHIVO_OUTPUT_DECODE], MODO_ESCRITURA);
+		if(archivoOutput == NULL){
+			printf("Hubo un error al crear el archivo de salida.");
+			fclose(archivoInput);
+			return;
+		}
+
+		hacerConversionATexto(archivoInput, archivoOutput);
+
+		fclose(archivoInput);
+		fclose(archivoOutput);
+
+
+	}else{
+		printf("Faltan argumentos para poder decodificar.");
+		imprimirAyuda();
+	}
 
 }
 
@@ -179,9 +320,10 @@ int main(int cantidadArgumentos, char* argumentos[]){
 	if(cantidadArgumentos>CANTIDAD_MINIMA_ARGUMENTOS){
 
 		if(strcmp(argumentos[1],OUTPUT) == 0){
-			//errorOutput();
+			printf("El comando output fue mal utilizado\n");
+			imprimirAyuda();
 		}else if(strcmp(argumentos[1],DECODE) == 0){
-			//decodificarATexto(argc, argv);
+			decodificarATexto(cantidadArgumentos, argumentos);
 		}else if(strcmp(argumentos[1],AYUDA) == 0){
 			imprimirAyuda();
 		}else if(strcmp(argumentos[1],VERSION) == 0){
