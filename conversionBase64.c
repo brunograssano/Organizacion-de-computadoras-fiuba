@@ -130,7 +130,7 @@ void hacerConversionABase64(FILE* archivoInput, FILE* archivoOuput){
 		return;
 	}
 
-	fprintf(archivoOuput, "%s\n", salidaCodificada);
+	fprintf(archivoOuput, "%s", salidaCodificada);
 
 	free(textoACodificar);
 	free(salidaCodificada);
@@ -206,9 +206,9 @@ char* decodificarBase64ATexto(const unsigned char* textoADecodificar, long taman
 		printf("El archivo esta vacio, no hay nada para decodificar.\n");
 		return NULL;
 	}
-/*
+
 	if (tamanioArchivoInput % 4 != 0){
-		printf("El archivo enviado no puede ser decodificado.\n");
+		printf("El archivo enviado no esta en base 64.\n");
 		return NULL;
 	}
 	
@@ -218,7 +218,7 @@ char* decodificarBase64ATexto(const unsigned char* textoADecodificar, long taman
 			return NULL;
 		}
 	}
-*/
+
 	long tamanioArchivoOutput = calcularTamanioArchivoSalidaDeTexto(textoADecodificar, tamanioArchivoInput);
 	char* salidaDecodificada  = malloc(tamanioArchivoOutput+1);
 	if(salidaDecodificada == NULL){
@@ -270,7 +270,7 @@ void hacerConversionATexto(FILE* archivoInput, FILE* archivoOuput){
 		return;
 	}
 
-	fprintf(archivoOuput, "%s\n", salidaCodificada);
+	fprintf(archivoOuput, "%s", salidaCodificada);
 
 	free(textoACodificar);
 	free(salidaCodificada);
