@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 const int CANTIDAD_MINIMA_ARGUMENTOS = 1;
 const int CANTIDAD_ARGUMENTOS_PARA_CODIFICAR = 5;
@@ -9,6 +10,8 @@ const int CANTIDAD_ARGUMENTOS_PARA_DECODIFICAR = 6;
 const int POS_ARCHIVO_INPUT_ENCODE = 2,POS_COMANDO_OUTPUT_ENCODE = 3,POS_ARCHIVO_OUTPUT_ENCODE = 4;
 const int POS_ARCHIVO_INPUT_DECODE = 3,POS_COMANDO_OUTPUT_DECODE = 4,POS_ARCHIVO_OUTPUT_DECODE = 5;
 const int ARCHIVO_VACIO = 0;
+const int LARGO_MAXIMO_ARCHIVO_POR_TERMINAL = 1000;
+
 
 #define MODO_LECTURA "r"
 #define MODO_ESCRITURA "w"
@@ -38,6 +41,7 @@ void imprimirAyuda(){
 	printf("Ejemplos: \n");
 	printf("	tp0 -i input.txt -o output.txt\n");
 	printf("	tp0 -d -i inputInBase64.txt -o outputInText.txt\n");
+	printf("	cat input.txt | ./tp0  (Unicamente para codificar)\n");
 }
 
 void mostrarVersion(){
@@ -323,7 +327,7 @@ void mostrarVersion(){
 ///--------------MAIN--------------///
 
 int main(int cantidadArgumentos, char* argumentos[]){
-
+	
 	if(cantidadArgumentos>CANTIDAD_MINIMA_ARGUMENTOS){
 
 		if(strcmp(argumentos[1],OUTPUT) == 0){
@@ -342,10 +346,19 @@ int main(int cantidadArgumentos, char* argumentos[]){
 			imprimirAyuda();
 		}
 
-	}else{
-		printf("No hubo suficientes argumentos\n");
-		imprimirAyuda();
+	}else{		
+		if (isatty(0)){
+			printf("Faltan argumentos\n");
+			imprimirAyuda();				
+		}else{
+			char entrada[LARGO_MAXIMO_ARCHIVO_POR_TERMINAL];	
+			char* salida;	
+			scanf("%[^\n]", entrada);
+			strcat(entrada,"\n");			
+			salida=codificarTexto((unsigned char*)entrada,strlen(entrada));
+			printf("%s\n",salida);
+			free(salida);		
+		}
 	}
-
 	return 0;
 }
