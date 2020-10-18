@@ -104,7 +104,7 @@ void mostrarVersion(){
 		long  caracterCodificandose;
 		salidaCodificada[tamanioArchivoOutput] = '\0';
 
-	for (long i=0, j=0; i<tamanioArchivoInput-1; i+=3, j+=4) {
+		for (long i=0, j=0; i<tamanioArchivoInput-1; i+=3, j+=4) {
 
 			caracterCodificandose = textoACodificar[i];
 
@@ -323,42 +323,55 @@ void mostrarVersion(){
 
 	}
 
-
 ///--------------MAIN--------------///
 
+void manejarEntradaEstandar(){
+	if (isatty(0)){
+		printf("Faltan argumentos\n");
+		imprimirAyuda();
+	}else{
+		char entrada[LARGO_MAXIMO_ARCHIVO_POR_TERMINAL];
+		strcpy(entrada,"\0");
+		scanf("%[^\n]", entrada);
+		int tamanio = strlen(entrada);
+		if(tamanio == ARCHIVO_VACIO){
+			printf("El archivo ingresado por terminal no existe o esta vacio.\n");
+			return;
+		}
+		strcat(entrada,"\n");
+		char* salida=codificarTexto((unsigned char*)entrada,tamanio);
+		printf("%s\n",salida);
+		free(salida);
+	}
+}
+
+
+void manejarParametros(int cantidadArgumentos, char* argumentos[]){
+
+	if(strcmp(argumentos[1],OUTPUT) == 0){
+		printf("El comando output fue mal utilizado\n");
+		imprimirAyuda();
+	}else if(strcmp(argumentos[1],DECODE) == 0){
+		decodificarATexto(cantidadArgumentos, argumentos);
+	}else if(strcmp(argumentos[1],AYUDA) == 0){
+		imprimirAyuda();
+	}else if(strcmp(argumentos[1],VERSION) == 0){
+		mostrarVersion();
+	}else if(strcmp(argumentos[1],INPUT) == 0){
+		convertirABase64(cantidadArgumentos, argumentos);
+	}else{
+		printf("No es un argumento valido\n");
+		imprimirAyuda();
+	}
+}
+
+
 int main(int cantidadArgumentos, char* argumentos[]){
-	
+
 	if(cantidadArgumentos>CANTIDAD_MINIMA_ARGUMENTOS){
-
-		if(strcmp(argumentos[1],OUTPUT) == 0){
-			printf("El comando output fue mal utilizado\n");
-			imprimirAyuda();
-		}else if(strcmp(argumentos[1],DECODE) == 0){
-			decodificarATexto(cantidadArgumentos, argumentos);
-		}else if(strcmp(argumentos[1],AYUDA) == 0){
-			imprimirAyuda();
-		}else if(strcmp(argumentos[1],VERSION) == 0){
-			mostrarVersion();
-		}else if(strcmp(argumentos[1],INPUT) == 0){
-			convertirABase64(cantidadArgumentos, argumentos);
-		}else{
-			printf("No es un argumento valido\n");
-			imprimirAyuda();
-		}
-
-	}else{		
-		if (isatty(0)){
-			printf("Faltan argumentos\n");
-			imprimirAyuda();				
-		}else{
-			char entrada[LARGO_MAXIMO_ARCHIVO_POR_TERMINAL];	
-			char* salida;	
-			scanf("%[^\n]", entrada);
-			strcat(entrada,"\n");			
-			salida=codificarTexto((unsigned char*)entrada,strlen(entrada));
-			printf("%s\n",salida);
-			free(salida);		
-		}
+		manejarParametros(cantidadArgumentos,argumentos);
+	}else{
+		manejarEntradaEstandar();
 	}
 	return 0;
 }
