@@ -7,10 +7,14 @@
 const int CANTIDAD_MINIMA_ARGUMENTOS = 1;
 const int CANTIDAD_ARGUMENTOS_PARA_CODIFICAR = 5;
 const int CANTIDAD_ARGUMENTOS_PARA_DECODIFICAR = 6;
+const int CANTIDAD_ARGUMENTOS_PARA_CODIFICAR_SALIDA_ESTANDAR = 3;
 const int POS_ARCHIVO_INPUT_ENCODE = 2,POS_COMANDO_OUTPUT_ENCODE = 3,POS_ARCHIVO_OUTPUT_ENCODE = 4;
 const int POS_ARCHIVO_INPUT_DECODE = 3,POS_COMANDO_OUTPUT_DECODE = 4,POS_ARCHIVO_OUTPUT_DECODE = 5;
 const int ARCHIVO_VACIO = 0;
 const int LARGO_MAXIMO_ARCHIVO_POR_TERMINAL = 1000;
+
+
+
 
 
 #define MODO_LECTURA "r"
@@ -121,7 +125,7 @@ void mostrarVersion(){
 	}
 
 
-	void hacerConversionABase64(FILE* archivoInput, FILE* archivoOuput){
+char* obtenerTextoCodificado(FILE* archivoInput){
 
 		fseek(archivoInput, 0, SEEK_END);
 		long tamanioArchivoInput = ftell(archivoInput);
@@ -130,20 +134,29 @@ void mostrarVersion(){
 		unsigned char *textoACodificar = malloc(tamanioArchivoInput + 1);
 		if(textoACodificar==NULL){
 			printf("Ha ocurrido un error durante la codificacion.\n");
-			return;
+			return NULL;
 		}
 
 		fread(textoACodificar, 1, tamanioArchivoInput, archivoInput);
 
 		char* salidaCodificada = codificarTexto(textoACodificar, tamanioArchivoInput);
-		if(salidaCodificada==NULL){
-			free(textoACodificar);
+		
+		free(textoACodificar);
+		
+		return salidaCodificada;
+}
+
+
+	void hacerConversionABase64(FILE* archivoInput, FILE* archivoOuput){
+
+		char* salidaCodificada = obtenerTextoCodificado(archivoInput);
+
+		if( salidaCodificada ==  NULL){
 			return;
 		}
 
 		fprintf(archivoOuput, "%s", salidaCodificada);
 
-		free(textoACodificar);
 		free(salidaCodificada);
 	}
 
@@ -170,6 +183,26 @@ void mostrarVersion(){
 			fclose(archivoInput);
 			fclose(archivoOutput);
 
+
+		}else if(cantidadArgumentos == CANTIDAD_ARGUMENTOS_PARA_CODIFICAR_SALIDA_ESTANDAR){
+			FILE* archivoInput = fopen(argumentos[POS_ARCHIVO_INPUT_ENCODE], MODO_LECTURA);
+			if(archivoInput == NULL){
+				printf("El archivo ingresado para codificar no existe.\n");
+				return;
+			}
+
+			char* salidaCodificada = obtenerTextoCodificado(archivoInput);
+
+			if( salidaCodificada == NULL ){
+				fclose(archivoInput);
+
+				return;
+			}
+
+			printf("%s\n", salidaCodificada);
+
+			fclose(archivoInput);
+			free(salidaCodificada);
 
 		}else{
 			if(cantidadArgumentos < CANTIDAD_ARGUMENTOS_PARA_CODIFICAR){
@@ -325,32 +358,72 @@ void mostrarVersion(){
 
 ///--------------MAIN--------------///
 
-void manejarEntradaEstandar(){
-	if (isatty(0)){
-		printf("Faltan argumentos\n");
-		imprimirAyuda();
-	}else{
+char* leerEntradaEstandar(){
 		char entrada[LARGO_MAXIMO_ARCHIVO_POR_TERMINAL];
 		strcpy(entrada,"\0");
 		scanf("%[^\n]", entrada);
 		int tamanio = strlen(entrada);
 		if(tamanio == ARCHIVO_VACIO){
 			printf("El archivo ingresado por terminal no existe o esta vacio.\n");
-			return;
+			return NULL;
 		}
 		strcat(entrada,"\n");
 		char* salida=codificarTexto((unsigned char*)entrada,tamanio);
+		return salida;
+}
+
+
+void manejarEntradaEstandar(){
+	if (isatty(0)){
+		printf("Faltan argumentos\n");
+		imprimirAyuda();
+	}else{
+		
+		char* salida = leerEntradaEstandar();
+		if(salida == NULL){
+			return;
+		}
+
 		printf("%s\n",salida);
 		free(salida);
 	}
 }
 
 
+
+void manejarEntrada(int cantidadArgumentos, char* argumentos[]){
+	
+	if(cantidadArgumentos == 3){
+		
+		FILE* archivoSalida = fopen(argumentos[2] ,MODO_ESCRITURA);
+		if(archivoSalida == NULL){
+			printf("No se pudo abrir el archivo de salida");
+			return;
+		}
+
+		char* salida = leerEntradaEstandar();
+
+		if(salida == NULL){
+			fclose(archivoSalida);
+			return;
+		}
+
+		fprintf(archivoSalida, "%s\n",  salida);
+
+		fclose(archivoSalida);
+		free(salida);
+	}else{
+
+		printf("El uso de los parametros no es correcto");
+	}
+
+}
+
+
 void manejarParametros(int cantidadArgumentos, char* argumentos[]){
 
 	if(strcmp(argumentos[1],OUTPUT) == 0){
-		printf("El comando output fue mal utilizado\n");
-		imprimirAyuda();
+		manejarEntrada(cantidadArgumentos, argumentos);
 	}else if(strcmp(argumentos[1],DECODE) == 0){
 		decodificarATexto(cantidadArgumentos, argumentos);
 	}else if(strcmp(argumentos[1],AYUDA) == 0){

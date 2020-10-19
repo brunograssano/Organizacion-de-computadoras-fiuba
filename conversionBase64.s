@@ -24,6 +24,12 @@ CANTIDAD_ARGUMENTOS_PARA_CODIFICAR:
 	.size	CANTIDAD_ARGUMENTOS_PARA_DECODIFICAR, 4
 CANTIDAD_ARGUMENTOS_PARA_DECODIFICAR:
 	.word	6
+	.globl	CANTIDAD_ARGUMENTOS_PARA_CODIFICAR_SALIDA_ESTANDAR
+	.align	2
+	.type	CANTIDAD_ARGUMENTOS_PARA_CODIFICAR_SALIDA_ESTANDAR, @object
+	.size	CANTIDAD_ARGUMENTOS_PARA_CODIFICAR_SALIDA_ESTANDAR, 4
+CANTIDAD_ARGUMENTOS_PARA_CODIFICAR_SALIDA_ESTANDAR:
+	.word	3
 	.globl	POS_ARCHIVO_INPUT_ENCODE
 	.align	2
 	.type	POS_ARCHIVO_INPUT_ENCODE, @object
@@ -748,12 +754,12 @@ $L24:
 	.end	codificarTexto
 	.size	codificarTexto, .-codificarTexto
 	.align	2
-	.globl	hacerConversionABase64
+	.globl	obtenerTextoCodificado
 	.set	nomips16
 	.set	nomicromips
-	.ent	hacerConversionABase64
-	.type	hacerConversionABase64, @function
-hacerConversionABase64:
+	.ent	obtenerTextoCodificado
+	.type	obtenerTextoCodificado, @function
+obtenerTextoCodificado:
 	.frame	$fp,48,$31		# vars= 16, regs= 2/0, args= 16, gp= 8
 	.mask	0xc0000000,-4
 	.fmask	0x00000000,0
@@ -766,7 +772,6 @@ hacerConversionABase64:
 	move	$fp,$sp
 	.cprestore	16
 	sw	$4,48($fp)
-	sw	$5,52($fp)
 	li	$6,2			# 0x2
 	move	$5,$0
 	lw	$4,48($fp)
@@ -820,7 +825,8 @@ hacerConversionABase64:
 	nop
 
 	lw	$28,16($fp)
-	b	$L25
+	move	$2,$0
+	b	$L27
 	nop
 
 $L26:
@@ -846,10 +852,6 @@ $L26:
 
 	lw	$28,16($fp)
 	sw	$2,32($fp)
-	lw	$2,32($fp)
-	bne	$2,$0,$L28
-	nop
-
 	lw	$4,28($fp)
 	lw	$2,%call16(free)($28)
 	move	$25,$2
@@ -858,12 +860,54 @@ $L26:
 	nop
 
 	lw	$28,16($fp)
-	b	$L25
+	lw	$2,32($fp)
+$L27:
+	move	$sp,$fp
+	lw	$31,44($sp)
+	lw	$fp,40($sp)
+	addiu	$sp,$sp,48
+	jr	$31
 	nop
 
-$L28:
-	lw	$5,52($fp)
-	lw	$4,32($fp)
+	.set	macro
+	.set	reorder
+	.end	obtenerTextoCodificado
+	.size	obtenerTextoCodificado, .-obtenerTextoCodificado
+	.align	2
+	.globl	hacerConversionABase64
+	.set	nomips16
+	.set	nomicromips
+	.ent	hacerConversionABase64
+	.type	hacerConversionABase64, @function
+hacerConversionABase64:
+	.frame	$fp,40,$31		# vars= 8, regs= 2/0, args= 16, gp= 8
+	.mask	0xc0000000,-4
+	.fmask	0x00000000,0
+	.set	noreorder
+	.cpload	$25
+	.set	nomacro
+	addiu	$sp,$sp,-40
+	sw	$31,36($sp)
+	sw	$fp,32($sp)
+	move	$fp,$sp
+	.cprestore	16
+	sw	$4,40($fp)
+	sw	$5,44($fp)
+	lw	$4,40($fp)
+	lw	$2,%got(obtenerTextoCodificado)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,obtenerTextoCodificado
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	sw	$2,24($fp)
+	lw	$2,24($fp)
+	beq	$2,$0,$L31
+	nop
+
+	lw	$5,44($fp)
+	lw	$4,24($fp)
 	lw	$2,%call16(fputs)($28)
 	move	$25,$2
 	.reloc	1f,R_MIPS_JALR,fputs
@@ -871,7 +915,7 @@ $L28:
 	nop
 
 	lw	$28,16($fp)
-	lw	$4,28($fp)
+	lw	$4,24($fp)
 	lw	$2,%call16(free)($28)
 	move	$25,$2
 	.reloc	1f,R_MIPS_JALR,free
@@ -879,19 +923,16 @@ $L28:
 	nop
 
 	lw	$28,16($fp)
-	lw	$4,32($fp)
-	lw	$2,%call16(free)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,free
-1:	jalr	$25
+	b	$L28
 	nop
 
-	lw	$28,16($fp)
-$L25:
+$L31:
+	nop
+$L28:
 	move	$sp,$fp
-	lw	$31,44($sp)
-	lw	$fp,40($sp)
-	addiu	$sp,$sp,48
+	lw	$31,36($sp)
+	lw	$fp,32($sp)
+	addiu	$sp,$sp,40
 	jr	$31
 	nop
 
@@ -930,27 +971,27 @@ $LC25:
 	.ent	convertirABase64
 	.type	convertirABase64, @function
 convertirABase64:
-	.frame	$fp,40,$31		# vars= 8, regs= 2/0, args= 16, gp= 8
+	.frame	$fp,48,$31		# vars= 16, regs= 2/0, args= 16, gp= 8
 	.mask	0xc0000000,-4
 	.fmask	0x00000000,0
 	.set	noreorder
 	.cpload	$25
 	.set	nomacro
-	addiu	$sp,$sp,-40
-	sw	$31,36($sp)
-	sw	$fp,32($sp)
+	addiu	$sp,$sp,-48
+	sw	$31,44($sp)
+	sw	$fp,40($sp)
 	move	$fp,$sp
 	.cprestore	16
-	sw	$4,40($fp)
-	sw	$5,44($fp)
+	sw	$4,48($fp)
+	sw	$5,52($fp)
 	li	$2,5			# 0x5
-	lw	$3,40($fp)
-	bne	$3,$2,$L30
+	lw	$3,48($fp)
+	bne	$3,$2,$L33
 	nop
 
 	li	$2,3			# 0x3
 	sll	$2,$2,2
-	lw	$3,44($fp)
+	lw	$3,52($fp)
 	addu	$2,$3,$2
 	lw	$3,0($2)
 	lw	$2,%got($LC19)($28)
@@ -963,12 +1004,12 @@ convertirABase64:
 	nop
 
 	lw	$28,16($fp)
-	bne	$2,$0,$L30
+	bne	$2,$0,$L33
 	nop
 
 	li	$2,2			# 0x2
 	sll	$2,$2,2
-	lw	$3,44($fp)
+	lw	$3,52($fp)
 	addu	$2,$3,$2
 	lw	$3,0($2)
 	lw	$2,%got($LC20)($28)
@@ -983,7 +1024,7 @@ convertirABase64:
 	lw	$28,16($fp)
 	sw	$2,24($fp)
 	lw	$2,24($fp)
-	bne	$2,$0,$L31
+	bne	$2,$0,$L34
 	nop
 
 	lw	$2,%got($LC21)($28)
@@ -995,13 +1036,13 @@ convertirABase64:
 	nop
 
 	lw	$28,16($fp)
-	b	$L29
+	b	$L32
 	nop
 
-$L31:
+$L34:
 	li	$2,4			# 0x4
 	sll	$2,$2,2
-	lw	$3,44($fp)
+	lw	$3,52($fp)
 	addu	$2,$3,$2
 	lw	$3,0($2)
 	lw	$2,%got($LC22)($28)
@@ -1016,7 +1057,7 @@ $L31:
 	lw	$28,16($fp)
 	sw	$2,28($fp)
 	lw	$2,28($fp)
-	bne	$2,$0,$L33
+	bne	$2,$0,$L36
 	nop
 
 	lw	$2,%got($LC23)($28)
@@ -1036,10 +1077,10 @@ $L31:
 	nop
 
 	lw	$28,16($fp)
-	b	$L29
+	b	$L32
 	nop
 
-$L33:
+$L36:
 	lw	$5,28($fp)
 	lw	$4,24($fp)
 	lw	$2,%got(hacerConversionABase64)($28)
@@ -1065,14 +1106,105 @@ $L33:
 	nop
 
 	lw	$28,16($fp)
-	b	$L29
+	b	$L32
 	nop
 
-$L30:
+$L33:
+	li	$2,3			# 0x3
+	lw	$3,48($fp)
+	bne	$3,$2,$L37
+	nop
+
+	li	$2,2			# 0x2
+	sll	$2,$2,2
+	lw	$3,52($fp)
+	addu	$2,$3,$2
+	lw	$3,0($2)
+	lw	$2,%got($LC20)($28)
+	addiu	$5,$2,%lo($LC20)
+	move	$4,$3
+	lw	$2,%call16(fopen)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,fopen
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	sw	$2,32($fp)
+	lw	$2,32($fp)
+	bne	$2,$0,$L38
+	nop
+
+	lw	$2,%got($LC21)($28)
+	addiu	$4,$2,%lo($LC21)
+	lw	$2,%call16(puts)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,puts
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L32
+	nop
+
+$L38:
+	lw	$4,32($fp)
+	lw	$2,%got(obtenerTextoCodificado)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,obtenerTextoCodificado
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	sw	$2,36($fp)
+	lw	$2,36($fp)
+	bne	$2,$0,$L39
+	nop
+
+	lw	$4,32($fp)
+	lw	$2,%call16(fclose)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,fclose
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L32
+	nop
+
+$L39:
+	lw	$4,36($fp)
+	lw	$2,%call16(puts)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,puts
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	lw	$4,32($fp)
+	lw	$2,%call16(fclose)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,fclose
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	lw	$4,36($fp)
+	lw	$2,%call16(free)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,free
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L32
+	nop
+
+$L37:
 	li	$2,5			# 0x5
-	lw	$3,40($fp)
+	lw	$3,48($fp)
 	slt	$2,$3,$2
-	beq	$2,$0,$L34
+	beq	$2,$0,$L40
 	nop
 
 	lw	$2,%got($LC24)($28)
@@ -1084,10 +1216,10 @@ $L30:
 	nop
 
 	lw	$28,16($fp)
-	b	$L35
+	b	$L41
 	nop
 
-$L34:
+$L40:
 	lw	$2,%got($LC25)($28)
 	addiu	$4,$2,%lo($LC25)
 	lw	$2,%call16(puts)($28)
@@ -1097,7 +1229,7 @@ $L34:
 	nop
 
 	lw	$28,16($fp)
-$L35:
+$L41:
 	lw	$2,%got(imprimirAyuda)($28)
 	move	$25,$2
 	.reloc	1f,R_MIPS_JALR,imprimirAyuda
@@ -1105,11 +1237,11 @@ $L35:
 	nop
 
 	lw	$28,16($fp)
-$L29:
+$L32:
 	move	$sp,$fp
-	lw	$31,36($sp)
-	lw	$fp,32($sp)
-	addiu	$sp,$sp,40
+	lw	$31,44($sp)
+	lw	$fp,40($sp)
+	addiu	$sp,$sp,48
 	jr	$31
 	nop
 
@@ -1137,11 +1269,11 @@ calcularTamanioArchivoSalidaDeTexto:
 	lw	$2,36($fp)
 	sw	$2,8($fp)
 	lw	$2,8($fp)
-	bgez	$2,$L37
+	bgez	$2,$L43
 	nop
 
 	addiu	$2,$2,3
-$L37:
+$L43:
 	sra	$2,$2,2
 	sw	$2,8($fp)
 	lw	$3,8($fp)
@@ -1152,43 +1284,43 @@ $L37:
 	lw	$2,8($fp)
 	sw	$2,12($fp)
 	sb	$0,16($fp)
-	b	$L38
+	b	$L44
 	nop
 
-$L42:
+$L48:
 	lw	$2,12($fp)
 	lw	$3,32($fp)
 	addu	$2,$3,$2
 	lbu	$3,0($2)
 	li	$2,61			# 0x3d
-	bne	$3,$2,$L39
+	bne	$3,$2,$L45
 	nop
 
 	lw	$2,8($fp)
 	addiu	$2,$2,-1
 	sw	$2,8($fp)
-	b	$L40
+	b	$L46
 	nop
 
-$L39:
+$L45:
 	li	$2,1			# 0x1
 	sb	$2,16($fp)
-$L40:
+$L46:
 	lw	$2,12($fp)
 	addiu	$2,$2,-1
 	sw	$2,12($fp)
-$L38:
+$L44:
 	lw	$2,12($fp)
-	blez	$2,$L41
+	blez	$2,$L47
 	nop
 
 	lbu	$2,16($fp)
 	xori	$2,$2,0x1
 	andi	$2,$2,0x00ff
-	bne	$2,$0,$L42
+	bne	$2,$0,$L48
 	nop
 
-$L41:
+$L47:
 	lw	$2,8($fp)
 	move	$sp,$fp
 	lw	$fp,28($sp)
@@ -1219,60 +1351,60 @@ esCaracterValido:
 	sb	$2,8($fp)
 	lb	$2,8($fp)
 	slt	$2,$2,48
-	bne	$2,$0,$L45
+	bne	$2,$0,$L51
 	nop
 
 	lb	$2,8($fp)
 	slt	$2,$2,58
-	bne	$2,$0,$L46
+	bne	$2,$0,$L52
 	nop
 
-$L45:
+$L51:
 	lb	$2,8($fp)
 	slt	$2,$2,65
-	bne	$2,$0,$L47
+	bne	$2,$0,$L53
 	nop
 
 	lb	$2,8($fp)
 	slt	$2,$2,91
-	bne	$2,$0,$L46
+	bne	$2,$0,$L52
 	nop
 
-$L47:
+$L53:
 	lb	$2,8($fp)
 	slt	$2,$2,97
-	bne	$2,$0,$L48
+	bne	$2,$0,$L54
 	nop
 
 	lb	$2,8($fp)
 	slt	$2,$2,123
-	bne	$2,$0,$L46
+	bne	$2,$0,$L52
 	nop
 
-$L48:
+$L54:
 	lb	$3,8($fp)
 	li	$2,43			# 0x2b
-	beq	$3,$2,$L46
+	beq	$3,$2,$L52
 	nop
 
 	lb	$3,8($fp)
 	li	$2,47			# 0x2f
-	beq	$3,$2,$L46
+	beq	$3,$2,$L52
 	nop
 
 	lb	$3,8($fp)
 	li	$2,61			# 0x3d
-	bne	$3,$2,$L49
+	bne	$3,$2,$L55
 	nop
 
-$L46:
+$L52:
 	li	$2,1			# 0x1
-	b	$L50
+	b	$L56
 	nop
 
-$L49:
+$L55:
 	move	$2,$0
-$L50:
+$L56:
 	andi	$2,$2,0x1
 	andi	$2,$2,0x00ff
 	move	$sp,$fp
@@ -1400,7 +1532,7 @@ decodificarBase64ATexto:
 	sw	$5,380($fp)
 	move	$3,$0
 	lw	$2,380($fp)
-	bne	$2,$3,$L53
+	bne	$2,$3,$L59
 	nop
 
 	lw	$2,%got($LC26)($28)
@@ -1413,13 +1545,13 @@ decodificarBase64ATexto:
 
 	lw	$28,16($fp)
 	move	$2,$0
-	b	$L68
+	b	$L74
 	nop
 
-$L53:
+$L59:
 	lw	$2,380($fp)
 	andi	$2,$2,0x3
-	beq	$2,$0,$L55
+	beq	$2,$0,$L61
 	nop
 
 	lw	$2,%got($LC27)($28)
@@ -1432,15 +1564,15 @@ $L53:
 
 	lw	$28,16($fp)
 	move	$2,$0
-	b	$L68
+	b	$L74
 	nop
 
-$L55:
+$L61:
 	sw	$0,24($fp)
-	b	$L56
+	b	$L62
 	nop
 
-$L58:
+$L64:
 	lw	$2,24($fp)
 	lw	$3,376($fp)
 	addu	$2,$3,$2
@@ -1456,7 +1588,7 @@ $L58:
 	lw	$28,16($fp)
 	xori	$2,$2,0x1
 	andi	$2,$2,0x00ff
-	beq	$2,$0,$L57
+	beq	$2,$0,$L63
 	nop
 
 	lw	$2,%got($LC27)($28)
@@ -1469,18 +1601,18 @@ $L58:
 
 	lw	$28,16($fp)
 	move	$2,$0
-	b	$L68
+	b	$L74
 	nop
 
-$L57:
+$L63:
 	lw	$2,24($fp)
 	addiu	$2,$2,1
 	sw	$2,24($fp)
-$L56:
+$L62:
 	lw	$3,24($fp)
 	lw	$2,380($fp)
 	slt	$2,$3,$2
-	bne	$2,$0,$L58
+	bne	$2,$0,$L64
 	nop
 
 	lw	$5,380($fp)
@@ -1505,7 +1637,7 @@ $L56:
 	lw	$28,16($fp)
 	sw	$2,40($fp)
 	lw	$2,40($fp)
-	bne	$2,$0,$L59
+	bne	$2,$0,$L65
 	nop
 
 	lw	$2,%got($LC28)($28)
@@ -1518,10 +1650,10 @@ $L56:
 
 	lw	$28,16($fp)
 	move	$2,$0
-	b	$L68
+	b	$L74
 	nop
 
-$L59:
+$L65:
 	lw	$2,%got($LC0)($28)
 	addiu	$3,$fp,48
 	addiu	$2,$2,%lo($LC0)
@@ -1538,10 +1670,10 @@ $L59:
 	lw	$28,16($fp)
 	sw	$0,28($fp)
 	sw	$0,32($fp)
-	b	$L60
+	b	$L66
 	nop
 
-$L67:
+$L73:
 	lw	$2,28($fp)
 	lw	$3,376($fp)
 	addu	$2,$3,$2
@@ -1572,15 +1704,15 @@ $L67:
 	addu	$2,$3,$2
 	lbu	$3,0($2)
 	li	$2,61			# 0x3d
-	bne	$3,$2,$L61
+	bne	$3,$2,$L67
 	nop
 
 	lw	$2,44($fp)
 	sll	$2,$2,6
-	b	$L62
+	b	$L68
 	nop
 
-$L61:
+$L67:
 	lw	$2,44($fp)
 	sll	$3,$2,6
 	lw	$2,28($fp)
@@ -1594,7 +1726,7 @@ $L61:
 	addu	$2,$4,$2
 	lw	$2,24($2)
 	or	$2,$3,$2
-$L62:
+$L68:
 	sw	$2,44($fp)
 	lw	$2,28($fp)
 	addiu	$2,$2,3
@@ -1602,15 +1734,15 @@ $L62:
 	addu	$2,$3,$2
 	lbu	$3,0($2)
 	li	$2,61			# 0x3d
-	bne	$3,$2,$L63
+	bne	$3,$2,$L69
 	nop
 
 	lw	$2,44($fp)
 	sll	$2,$2,6
-	b	$L64
+	b	$L70
 	nop
 
-$L63:
+$L69:
 	lw	$2,44($fp)
 	sll	$3,$2,6
 	lw	$2,28($fp)
@@ -1624,7 +1756,7 @@ $L63:
 	addu	$2,$4,$2
 	lw	$2,24($2)
 	or	$2,$3,$2
-$L64:
+$L70:
 	sw	$2,44($fp)
 	lw	$2,32($fp)
 	lw	$3,40($fp)
@@ -1639,7 +1771,7 @@ $L64:
 	addu	$2,$3,$2
 	lbu	$3,0($2)
 	li	$2,61			# 0x3d
-	beq	$3,$2,$L65
+	beq	$3,$2,$L71
 	nop
 
 	lw	$2,32($fp)
@@ -1650,14 +1782,14 @@ $L64:
 	sra	$3,$3,8
 	seb	$3,$3
 	sb	$3,0($2)
-$L65:
+$L71:
 	lw	$2,28($fp)
 	addiu	$2,$2,3
 	lw	$3,376($fp)
 	addu	$2,$3,$2
 	lbu	$3,0($2)
 	li	$2,61			# 0x3d
-	beq	$3,$2,$L66
+	beq	$3,$2,$L72
 	nop
 
 	lw	$2,32($fp)
@@ -1667,22 +1799,22 @@ $L65:
 	lw	$3,44($fp)
 	seb	$3,$3
 	sb	$3,0($2)
-$L66:
+$L72:
 	lw	$2,28($fp)
 	addiu	$2,$2,4
 	sw	$2,28($fp)
 	lw	$2,32($fp)
 	addiu	$2,$2,3
 	sw	$2,32($fp)
-$L60:
+$L66:
 	lw	$3,28($fp)
 	lw	$2,380($fp)
 	slt	$2,$3,$2
-	bne	$2,$0,$L67
+	bne	$2,$0,$L73
 	nop
 
 	lw	$2,40($fp)
-$L68:
+$L74:
 	move	$sp,$fp
 	lw	$31,372($sp)
 	lw	$fp,368($sp)
@@ -1755,7 +1887,7 @@ hacerConversionATexto:
 	lw	$28,16($fp)
 	sw	$2,28($fp)
 	lw	$2,28($fp)
-	bne	$2,$0,$L70
+	bne	$2,$0,$L76
 	nop
 
 	lw	$2,%got($LC28)($28)
@@ -1767,10 +1899,10 @@ hacerConversionATexto:
 	nop
 
 	lw	$28,16($fp)
-	b	$L69
+	b	$L75
 	nop
 
-$L70:
+$L76:
 	lw	$2,24($fp)
 	lw	$7,48($fp)
 	move	$6,$2
@@ -1794,7 +1926,7 @@ $L70:
 	lw	$28,16($fp)
 	sw	$2,32($fp)
 	lw	$2,32($fp)
-	bne	$2,$0,$L72
+	bne	$2,$0,$L78
 	nop
 
 	lw	$4,28($fp)
@@ -1805,10 +1937,10 @@ $L70:
 	nop
 
 	lw	$28,16($fp)
-	b	$L69
+	b	$L75
 	nop
 
-$L72:
+$L78:
 	lw	$5,52($fp)
 	lw	$4,32($fp)
 	lw	$2,%call16(fputs)($28)
@@ -1834,7 +1966,7 @@ $L72:
 	nop
 
 	lw	$28,16($fp)
-$L69:
+$L75:
 	move	$sp,$fp
 	lw	$31,44($sp)
 	lw	$fp,40($sp)
@@ -1877,7 +2009,7 @@ decodificarATexto:
 	sw	$5,44($fp)
 	li	$2,6			# 0x6
 	lw	$3,40($fp)
-	bne	$3,$2,$L74
+	bne	$3,$2,$L80
 	nop
 
 	li	$2,4			# 0x4
@@ -1895,7 +2027,7 @@ decodificarATexto:
 	nop
 
 	lw	$28,16($fp)
-	bne	$2,$0,$L74
+	bne	$2,$0,$L80
 	nop
 
 	li	$2,3			# 0x3
@@ -1915,7 +2047,7 @@ decodificarATexto:
 	lw	$28,16($fp)
 	sw	$2,24($fp)
 	lw	$2,24($fp)
-	bne	$2,$0,$L75
+	bne	$2,$0,$L81
 	nop
 
 	lw	$2,%got($LC29)($28)
@@ -1927,10 +2059,10 @@ decodificarATexto:
 	nop
 
 	lw	$28,16($fp)
-	b	$L73
+	b	$L79
 	nop
 
-$L75:
+$L81:
 	li	$2,5			# 0x5
 	sll	$2,$2,2
 	lw	$3,44($fp)
@@ -1948,7 +2080,7 @@ $L75:
 	lw	$28,16($fp)
 	sw	$2,28($fp)
 	lw	$2,28($fp)
-	bne	$2,$0,$L77
+	bne	$2,$0,$L83
 	nop
 
 	lw	$2,%got($LC23)($28)
@@ -1968,10 +2100,10 @@ $L75:
 	nop
 
 	lw	$28,16($fp)
-	b	$L73
+	b	$L79
 	nop
 
-$L77:
+$L83:
 	lw	$5,28($fp)
 	lw	$4,24($fp)
 	lw	$2,%got(hacerConversionATexto)($28)
@@ -1997,14 +2129,14 @@ $L77:
 	nop
 
 	lw	$28,16($fp)
-	b	$L73
+	b	$L79
 	nop
 
-$L74:
+$L80:
 	li	$2,6			# 0x6
 	lw	$3,40($fp)
 	slt	$2,$3,$2
-	beq	$2,$0,$L78
+	beq	$2,$0,$L84
 	nop
 
 	lw	$2,%got($LC30)($28)
@@ -2016,10 +2148,10 @@ $L74:
 	nop
 
 	lw	$28,16($fp)
-	b	$L79
+	b	$L85
 	nop
 
-$L78:
+$L84:
 	lw	$2,%got($LC25)($28)
 	addiu	$4,$2,%lo($LC25)
 	lw	$2,%call16(puts)($28)
@@ -2029,7 +2161,7 @@ $L78:
 	nop
 
 	lw	$28,16($fp)
-$L79:
+$L85:
 	lw	$2,%got(imprimirAyuda)($28)
 	move	$25,$2
 	.reloc	1f,R_MIPS_JALR,imprimirAyuda
@@ -2037,7 +2169,7 @@ $L79:
 	nop
 
 	lw	$28,16($fp)
-$L73:
+$L79:
 	move	$sp,$fp
 	lw	$31,36($sp)
 	lw	$fp,32($sp)
@@ -2052,281 +2184,51 @@ $L73:
 	.rdata
 	.align	2
 $LC31:
-	.ascii	"El comando output fue mal utilizado\000"
+	.ascii	"%[^\012]\000"
 	.align	2
 $LC32:
-	.ascii	"-d\000"
-	.align	2
-$LC33:
-	.ascii	"-h\000"
-	.align	2
-$LC34:
-	.ascii	"-V\000"
-	.align	2
-$LC35:
-	.ascii	"-i\000"
-	.align	2
-$LC36:
-	.ascii	"No es un argumento valido\000"
-	.align	2
-$LC37:
-	.ascii	"Faltan argumentos\000"
-	.align	2
-$LC38:
-	.ascii	"%[^\012]\000"
+	.ascii	"El archivo ingresado por terminal no existe o esta vacio"
+	.ascii	".\000"
 	.text
 	.align	2
-	.globl	main
+	.globl	leerEntradaEstandar
 	.set	nomips16
 	.set	nomicromips
-	.ent	main
-	.type	main, @function
-main:
-	.frame	$fp,88,$31		# vars= 24, regs= 10/0, args= 16, gp= 8
-	.mask	0xc0ff0000,-4
+	.ent	leerEntradaEstandar
+	.type	leerEntradaEstandar, @function
+leerEntradaEstandar:
+	.frame	$fp,56,$31		# vars= 16, regs= 4/0, args= 16, gp= 8
+	.mask	0xc0030000,-4
 	.fmask	0x00000000,0
 	.set	noreorder
 	.cpload	$25
 	.set	nomacro
-	addiu	$sp,$sp,-88
-	sw	$31,84($sp)
-	sw	$fp,80($sp)
-	sw	$23,76($sp)
-	sw	$22,72($sp)
-	sw	$21,68($sp)
-	sw	$20,64($sp)
-	sw	$19,60($sp)
-	sw	$18,56($sp)
-	sw	$17,52($sp)
-	sw	$16,48($sp)
+	addiu	$sp,$sp,-56
+	sw	$31,52($sp)
+	sw	$fp,48($sp)
+	sw	$17,44($sp)
+	sw	$16,40($sp)
 	move	$fp,$sp
 	.cprestore	16
-	sw	$4,88($fp)
-	sw	$5,92($fp)
-	li	$2,1			# 0x1
-	lw	$3,88($fp)
-	slt	$2,$2,$3
-	beq	$2,$0,$L81
-	nop
-
-	lw	$2,92($fp)
-	addiu	$2,$2,4
-	lw	$3,0($2)
-	lw	$2,%got($LC19)($28)
-	addiu	$5,$2,%lo($LC19)
-	move	$4,$3
-	lw	$2,%call16(strcmp)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,strcmp
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	bne	$2,$0,$L82
-	nop
-
-	lw	$2,%got($LC31)($28)
-	addiu	$4,$2,%lo($LC31)
-	lw	$2,%call16(puts)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,puts
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	lw	$2,%got(imprimirAyuda)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,imprimirAyuda
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	b	$L88
-	nop
-
-$L82:
-	lw	$2,92($fp)
-	addiu	$2,$2,4
-	lw	$3,0($2)
-	lw	$2,%got($LC32)($28)
-	addiu	$5,$2,%lo($LC32)
-	move	$4,$3
-	lw	$2,%call16(strcmp)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,strcmp
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	bne	$2,$0,$L84
-	nop
-
-	lw	$5,92($fp)
-	lw	$4,88($fp)
-	lw	$2,%got(decodificarATexto)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,decodificarATexto
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	b	$L88
-	nop
-
-$L84:
-	lw	$2,92($fp)
-	addiu	$2,$2,4
-	lw	$3,0($2)
-	lw	$2,%got($LC33)($28)
-	addiu	$5,$2,%lo($LC33)
-	move	$4,$3
-	lw	$2,%call16(strcmp)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,strcmp
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	bne	$2,$0,$L85
-	nop
-
-	lw	$2,%got(imprimirAyuda)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,imprimirAyuda
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	b	$L88
-	nop
-
-$L85:
-	lw	$2,92($fp)
-	addiu	$2,$2,4
-	lw	$3,0($2)
-	lw	$2,%got($LC34)($28)
-	addiu	$5,$2,%lo($LC34)
-	move	$4,$3
-	lw	$2,%call16(strcmp)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,strcmp
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	bne	$2,$0,$L86
-	nop
-
-	lw	$2,%got(mostrarVersion)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,mostrarVersion
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	b	$L88
-	nop
-
-$L86:
-	lw	$2,92($fp)
-	addiu	$2,$2,4
-	lw	$3,0($2)
-	lw	$2,%got($LC35)($28)
-	addiu	$5,$2,%lo($LC35)
-	move	$4,$3
-	lw	$2,%call16(strcmp)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,strcmp
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	bne	$2,$0,$L87
-	nop
-
-	lw	$5,92($fp)
-	lw	$4,88($fp)
-	lw	$2,%got(convertirABase64)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,convertirABase64
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	b	$L88
-	nop
-
-$L87:
-	lw	$2,%got($LC36)($28)
-	addiu	$4,$2,%lo($LC36)
-	lw	$2,%call16(puts)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,puts
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	lw	$2,%got(imprimirAyuda)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,imprimirAyuda
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	b	$L88
-	nop
-
-$L81:
-	move	$4,$0
-	lw	$2,%call16(isatty)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,isatty
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	beq	$2,$0,$L89
-	nop
-
-	lw	$2,%got($LC37)($28)
-	addiu	$4,$2,%lo($LC37)
-	lw	$2,%call16(puts)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,puts
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	lw	$2,%got(imprimirAyuda)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,imprimirAyuda
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	b	$L88
-	nop
-
-$L89:
-	move	$2,$sp
-	sw	$2,40($fp)
-	li	$2,1000			# 0x3e8
-	addiu	$2,$2,-1
-	sw	$2,24($fp)
-	li	$2,1000			# 0x3e8
-	move	$23,$2
-	move	$22,$0
-	srl	$2,$23,29
-	sll	$18,$22,3
-	or	$18,$2,$18
-	sll	$19,$23,3
-	li	$2,1000			# 0x3e8
-	move	$21,$2
-	move	$20,$0
-	srl	$2,$21,29
-	sll	$16,$20,3
-	or	$16,$2,$16
-	sll	$17,$21,3
+	move	$10,$sp
+	move	$17,$10
+	li	$10,1000			# 0x3e8
+	addiu	$10,$10,-1
+	sw	$10,24($fp)
+	li	$10,1000			# 0x3e8
+	move	$9,$10
+	move	$8,$0
+	srl	$10,$9,29
+	sll	$4,$8,3
+	or	$4,$10,$4
+	sll	$5,$9,3
+	li	$4,1000			# 0x3e8
+	move	$7,$4
+	move	$6,$0
+	srl	$4,$7,29
+	sll	$2,$6,3
+	or	$2,$4,$2
+	sll	$3,$7,3
 	li	$2,1000			# 0x3e8
 	addiu	$2,$2,7
 	srl	$2,$2,3
@@ -2336,9 +2238,11 @@ $L89:
 	addiu	$2,$2,0
 	sw	$2,28($fp)
 	lw	$2,28($fp)
+	sb	$0,0($2)
+	lw	$2,28($fp)
 	move	$5,$2
-	lw	$2,%got($LC38)($28)
-	addiu	$4,$2,%lo($LC38)
+	lw	$2,%got($LC31)($28)
+	addiu	$4,$2,%lo($LC31)
 	lw	$2,%call16(__isoc99_scanf)($28)
 	move	$25,$2
 	.reloc	1f,R_MIPS_JALR,__isoc99_scanf
@@ -2346,6 +2250,35 @@ $L89:
 	nop
 
 	lw	$28,16($fp)
+	lw	$2,28($fp)
+	move	$4,$2
+	lw	$2,%call16(strlen)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,strlen
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	sw	$2,32($fp)
+	move	$3,$0
+	lw	$2,32($fp)
+	bne	$2,$3,$L87
+	nop
+
+	lw	$2,%got($LC32)($28)
+	addiu	$4,$2,%lo($LC32)
+	lw	$2,%call16(puts)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,puts
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	move	$2,$0
+	b	$L88
+	nop
+
+$L87:
 	lw	$16,28($fp)
 	move	$4,$16
 	lw	$2,%call16(strlen)($28)
@@ -2359,18 +2292,9 @@ $L89:
 	li	$3,10			# 0xa
 	sb	$3,0($2)
 	sb	$0,1($2)
-	lw	$16,28($fp)
 	lw	$2,28($fp)
+	lw	$5,32($fp)
 	move	$4,$2
-	lw	$2,%call16(strlen)($28)
-	move	$25,$2
-	.reloc	1f,R_MIPS_JALR,strlen
-1:	jalr	$25
-	nop
-
-	lw	$28,16($fp)
-	move	$5,$2
-	move	$4,$16
 	lw	$2,%got(codificarTexto)($28)
 	move	$25,$2
 	.reloc	1f,R_MIPS_JALR,codificarTexto
@@ -2378,8 +2302,59 @@ $L89:
 	nop
 
 	lw	$28,16($fp)
-	sw	$2,32($fp)
-	lw	$4,32($fp)
+	sw	$2,36($fp)
+	lw	$2,36($fp)
+$L88:
+	move	$sp,$17
+	move	$sp,$fp
+	lw	$31,52($sp)
+	lw	$fp,48($sp)
+	lw	$17,44($sp)
+	lw	$16,40($sp)
+	addiu	$sp,$sp,56
+	jr	$31
+	nop
+
+	.set	macro
+	.set	reorder
+	.end	leerEntradaEstandar
+	.size	leerEntradaEstandar, .-leerEntradaEstandar
+	.rdata
+	.align	2
+$LC33:
+	.ascii	"Faltan argumentos\000"
+	.text
+	.align	2
+	.globl	manejarEntradaEstandar
+	.set	nomips16
+	.set	nomicromips
+	.ent	manejarEntradaEstandar
+	.type	manejarEntradaEstandar, @function
+manejarEntradaEstandar:
+	.frame	$fp,40,$31		# vars= 8, regs= 2/0, args= 16, gp= 8
+	.mask	0xc0000000,-4
+	.fmask	0x00000000,0
+	.set	noreorder
+	.cpload	$25
+	.set	nomacro
+	addiu	$sp,$sp,-40
+	sw	$31,36($sp)
+	sw	$fp,32($sp)
+	move	$fp,$sp
+	.cprestore	16
+	move	$4,$0
+	lw	$2,%call16(isatty)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,isatty
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	beq	$2,$0,$L91
+	nop
+
+	lw	$2,%got($LC33)($28)
+	addiu	$4,$2,%lo($LC33)
 	lw	$2,%call16(puts)($28)
 	move	$25,$2
 	.reloc	1f,R_MIPS_JALR,puts
@@ -2387,7 +2362,38 @@ $L89:
 	nop
 
 	lw	$28,16($fp)
-	lw	$4,32($fp)
+	lw	$2,%got(imprimirAyuda)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,imprimirAyuda
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L90
+	nop
+
+$L91:
+	lw	$2,%got(leerEntradaEstandar)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,leerEntradaEstandar
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	sw	$2,24($fp)
+	lw	$2,24($fp)
+	beq	$2,$0,$L94
+	nop
+
+	lw	$4,24($fp)
+	lw	$2,%call16(puts)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,puts
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	lw	$4,24($fp)
 	lw	$2,%call16(free)($28)
 	move	$25,$2
 	.reloc	1f,R_MIPS_JALR,free
@@ -2395,21 +2401,425 @@ $L89:
 	nop
 
 	lw	$28,16($fp)
-	lw	$sp,40($fp)
-$L88:
+	b	$L90
+	nop
+
+$L94:
+	nop
+$L90:
+	move	$sp,$fp
+	lw	$31,36($sp)
+	lw	$fp,32($sp)
+	addiu	$sp,$sp,40
+	jr	$31
+	nop
+
+	.set	macro
+	.set	reorder
+	.end	manejarEntradaEstandar
+	.size	manejarEntradaEstandar, .-manejarEntradaEstandar
+	.rdata
+	.align	2
+$LC34:
+	.ascii	"No se pudo abrir el archivo de salida\000"
+	.align	2
+$LC35:
+	.ascii	"%s\012\000"
+	.align	2
+$LC36:
+	.ascii	"El uso de los parametros no es correcto\000"
+	.text
+	.align	2
+	.globl	manejarEntrada
+	.set	nomips16
+	.set	nomicromips
+	.ent	manejarEntrada
+	.type	manejarEntrada, @function
+manejarEntrada:
+	.frame	$fp,40,$31		# vars= 8, regs= 2/0, args= 16, gp= 8
+	.mask	0xc0000000,-4
+	.fmask	0x00000000,0
+	.set	noreorder
+	.cpload	$25
+	.set	nomacro
+	addiu	$sp,$sp,-40
+	sw	$31,36($sp)
+	sw	$fp,32($sp)
+	move	$fp,$sp
+	.cprestore	16
+	sw	$4,40($fp)
+	sw	$5,44($fp)
+	lw	$3,40($fp)
+	li	$2,3			# 0x3
+	bne	$3,$2,$L96
+	nop
+
+	lw	$2,44($fp)
+	addiu	$2,$2,8
+	lw	$3,0($2)
+	lw	$2,%got($LC22)($28)
+	addiu	$5,$2,%lo($LC22)
+	move	$4,$3
+	lw	$2,%call16(fopen)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,fopen
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	sw	$2,24($fp)
+	lw	$2,24($fp)
+	bne	$2,$0,$L97
+	nop
+
+	lw	$2,%got($LC34)($28)
+	addiu	$4,$2,%lo($LC34)
+	lw	$2,%call16(printf)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,printf
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L95
+	nop
+
+$L97:
+	lw	$2,%got(leerEntradaEstandar)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,leerEntradaEstandar
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	sw	$2,28($fp)
+	lw	$2,28($fp)
+	bne	$2,$0,$L99
+	nop
+
+	lw	$4,24($fp)
+	lw	$2,%call16(fclose)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,fclose
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L95
+	nop
+
+$L99:
+	lw	$6,28($fp)
+	lw	$2,%got($LC35)($28)
+	addiu	$5,$2,%lo($LC35)
+	lw	$4,24($fp)
+	lw	$2,%call16(fprintf)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,fprintf
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	lw	$4,24($fp)
+	lw	$2,%call16(fclose)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,fclose
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	lw	$4,28($fp)
+	lw	$2,%call16(free)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,free
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L95
+	nop
+
+$L96:
+	lw	$2,%got($LC36)($28)
+	addiu	$4,$2,%lo($LC36)
+	lw	$2,%call16(printf)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,printf
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+$L95:
+	move	$sp,$fp
+	lw	$31,36($sp)
+	lw	$fp,32($sp)
+	addiu	$sp,$sp,40
+	jr	$31
+	nop
+
+	.set	macro
+	.set	reorder
+	.end	manejarEntrada
+	.size	manejarEntrada, .-manejarEntrada
+	.rdata
+	.align	2
+$LC37:
+	.ascii	"-d\000"
+	.align	2
+$LC38:
+	.ascii	"-h\000"
+	.align	2
+$LC39:
+	.ascii	"-V\000"
+	.align	2
+$LC40:
+	.ascii	"-i\000"
+	.align	2
+$LC41:
+	.ascii	"No es un argumento valido\000"
+	.text
+	.align	2
+	.globl	manejarParametros
+	.set	nomips16
+	.set	nomicromips
+	.ent	manejarParametros
+	.type	manejarParametros, @function
+manejarParametros:
+	.frame	$fp,32,$31		# vars= 0, regs= 2/0, args= 16, gp= 8
+	.mask	0xc0000000,-4
+	.fmask	0x00000000,0
+	.set	noreorder
+	.cpload	$25
+	.set	nomacro
+	addiu	$sp,$sp,-32
+	sw	$31,28($sp)
+	sw	$fp,24($sp)
+	move	$fp,$sp
+	.cprestore	16
+	sw	$4,32($fp)
+	sw	$5,36($fp)
+	lw	$2,36($fp)
+	addiu	$2,$2,4
+	lw	$3,0($2)
+	lw	$2,%got($LC19)($28)
+	addiu	$5,$2,%lo($LC19)
+	move	$4,$3
+	lw	$2,%call16(strcmp)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,strcmp
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	bne	$2,$0,$L101
+	nop
+
+	lw	$5,36($fp)
+	lw	$4,32($fp)
+	lw	$2,%got(manejarEntrada)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,manejarEntrada
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L107
+	nop
+
+$L101:
+	lw	$2,36($fp)
+	addiu	$2,$2,4
+	lw	$3,0($2)
+	lw	$2,%got($LC37)($28)
+	addiu	$5,$2,%lo($LC37)
+	move	$4,$3
+	lw	$2,%call16(strcmp)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,strcmp
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	bne	$2,$0,$L103
+	nop
+
+	lw	$5,36($fp)
+	lw	$4,32($fp)
+	lw	$2,%got(decodificarATexto)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,decodificarATexto
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L107
+	nop
+
+$L103:
+	lw	$2,36($fp)
+	addiu	$2,$2,4
+	lw	$3,0($2)
+	lw	$2,%got($LC38)($28)
+	addiu	$5,$2,%lo($LC38)
+	move	$4,$3
+	lw	$2,%call16(strcmp)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,strcmp
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	bne	$2,$0,$L104
+	nop
+
+	lw	$2,%got(imprimirAyuda)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,imprimirAyuda
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L107
+	nop
+
+$L104:
+	lw	$2,36($fp)
+	addiu	$2,$2,4
+	lw	$3,0($2)
+	lw	$2,%got($LC39)($28)
+	addiu	$5,$2,%lo($LC39)
+	move	$4,$3
+	lw	$2,%call16(strcmp)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,strcmp
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	bne	$2,$0,$L105
+	nop
+
+	lw	$2,%got(mostrarVersion)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,mostrarVersion
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L107
+	nop
+
+$L105:
+	lw	$2,36($fp)
+	addiu	$2,$2,4
+	lw	$3,0($2)
+	lw	$2,%got($LC40)($28)
+	addiu	$5,$2,%lo($LC40)
+	move	$4,$3
+	lw	$2,%call16(strcmp)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,strcmp
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	bne	$2,$0,$L106
+	nop
+
+	lw	$5,36($fp)
+	lw	$4,32($fp)
+	lw	$2,%got(convertirABase64)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,convertirABase64
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L107
+	nop
+
+$L106:
+	lw	$2,%got($LC41)($28)
+	addiu	$4,$2,%lo($LC41)
+	lw	$2,%call16(puts)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,puts
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	lw	$2,%got(imprimirAyuda)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,imprimirAyuda
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+$L107:
+	nop
+	move	$sp,$fp
+	lw	$31,28($sp)
+	lw	$fp,24($sp)
+	addiu	$sp,$sp,32
+	jr	$31
+	nop
+
+	.set	macro
+	.set	reorder
+	.end	manejarParametros
+	.size	manejarParametros, .-manejarParametros
+	.align	2
+	.globl	main
+	.set	nomips16
+	.set	nomicromips
+	.ent	main
+	.type	main, @function
+main:
+	.frame	$fp,32,$31		# vars= 0, regs= 2/0, args= 16, gp= 8
+	.mask	0xc0000000,-4
+	.fmask	0x00000000,0
+	.set	noreorder
+	.cpload	$25
+	.set	nomacro
+	addiu	$sp,$sp,-32
+	sw	$31,28($sp)
+	sw	$fp,24($sp)
+	move	$fp,$sp
+	.cprestore	16
+	sw	$4,32($fp)
+	sw	$5,36($fp)
+	li	$2,1			# 0x1
+	lw	$3,32($fp)
+	slt	$2,$2,$3
+	beq	$2,$0,$L109
+	nop
+
+	lw	$5,36($fp)
+	lw	$4,32($fp)
+	lw	$2,%got(manejarParametros)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,manejarParametros
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	b	$L110
+	nop
+
+$L109:
+	lw	$2,%got(manejarEntradaEstandar)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,manejarEntradaEstandar
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+$L110:
 	move	$2,$0
 	move	$sp,$fp
-	lw	$31,84($sp)
-	lw	$fp,80($sp)
-	lw	$23,76($sp)
-	lw	$22,72($sp)
-	lw	$21,68($sp)
-	lw	$20,64($sp)
-	lw	$19,60($sp)
-	lw	$18,56($sp)
-	lw	$17,52($sp)
-	lw	$16,48($sp)
-	addiu	$sp,$sp,88
+	lw	$31,28($sp)
+	lw	$fp,24($sp)
+	addiu	$sp,$sp,32
 	jr	$31
 	nop
 
