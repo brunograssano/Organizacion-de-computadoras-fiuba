@@ -1,3 +1,5 @@
+
+/*
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -140,9 +142,9 @@ char* obtenerTextoCodificado(FILE* archivoInput){
 		fread(textoACodificar, 1, tamanioArchivoInput, archivoInput);
 
 		char* salidaCodificada = codificarTexto(textoACodificar, tamanioArchivoInput);
-		
+
 		free(textoACodificar);
-		
+
 		return salidaCodificada;
 }
 
@@ -231,7 +233,7 @@ char* obtenerTextoCodificado(FILE* archivoInput){
 		while(i>0 && !termino){
 			if (textoACodificar[i] == '='){
 	            tamanioArchivoOutput--;
-      }else{
+			}else{
       	termino = true;
       }
       i--;
@@ -378,7 +380,7 @@ void manejarEntradaEstandar(){
 		printf("Faltan argumentos\n");
 		imprimirAyuda();
 	}else{
-		
+
 		char* salida = leerEntradaEstandar();
 		if(salida == NULL){
 			return;
@@ -392,9 +394,9 @@ void manejarEntradaEstandar(){
 
 
 void manejarEntrada(int cantidadArgumentos, char* argumentos[]){
-	
+
 	if(cantidadArgumentos == 3){
-		
+
 		FILE* archivoSalida = fopen(argumentos[2] ,MODO_ESCRITURA);
 		if(archivoSalida == NULL){
 			printf("No se pudo abrir el archivo de salida");
@@ -447,4 +449,4 @@ int main(int cantidadArgumentos, char* argumentos[]){
 		manejarEntradaEstandar();
 	}
 	return 0;
-}
+}*/
