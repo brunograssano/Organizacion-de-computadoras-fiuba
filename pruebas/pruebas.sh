@@ -11,8 +11,10 @@ espacios
 
 	echo PRUEBA 1 - Se codifica un archivo vacio llamado "archivoVacio.txt"
 	echo
-	echo RESULTADO:
-		./tp -i archivoVacio.txt -o codificado.txt
+	echo RESULTADO ESPERADO: 
+	echo El archivo esta vacio, no hay nada para codificar.
+	echo RESULTADO: 
+	./tp -i archivoVacio.txt -o codificado.txt 2>&1
 
 espacios
 
@@ -21,8 +23,10 @@ espacios
 	echo El archivo "noEstoyEn64.txt":
 	cat noEstoyEn64.txt
 	echo
+	echo RESULTADO ESPERADO:
+	echo El archivo enviado no esta en base 64
 	echo RESULTADO:
-	./tp -d -i noEstoyEn64.txt -o decodificado.txt
+	./tp -d -i noEstoyEn64.txt -o decodificado.txt 2>&1
 
 espacios
 
@@ -44,6 +48,8 @@ espacios
 
 	echo PRUEBA 4 - No mandamos ningun argumento al tp
 	echo
+	echo RESULTADO ESPERADO:
+	echo Faltan argumentos
 	echo RESULTADO:
 	./tp
 
@@ -51,20 +57,26 @@ espacios
 
 	echo PRUEBA 5 - Mandamos un archivo inexistente por terminal
 	echo
+	echo RESULTADO ESPERADO:
+	echo El archivo ingresado por terminal no existe o esta vacio.
 	echo RESULTADO:
-	cat archivoInexistente | ./tp
+	cat archivoInexistente | ./tp 2>&1
 
 espacios
 
 	echo PRUEBA 6 - Al usar /dev/null no se muestran errores por stderr
-	echo RESULTADO:
+	echo RESULTADO ESPERADO:
+	echo 
 	echo Ejecutamos lo siguiente: ./tp 2> /dev/null
+	echo RESULTADO:
 	./tp 2> /dev/null
 
 espacios
 
 	echo PRUEBA 7 - Codificafamos un archivo con solo ceros
 	echo El archivo a codificar contiene: "'\x00\x00\x00'"
+	echo RESULTADO ESPERADO:
+	printf '\x00\x00\x00' | base64
 	echo RESULTADO:
 	printf '\x00\x00\x00' | ./tp
 
@@ -73,6 +85,8 @@ espacios
 	echo PRUEBA 8 - Mandamos un archivo vacio por terminal y el error no se muestra al mandarlo a /dev/null
 	echo Ejecutamos lo siguiente: "echo -n "" |./tp"
 	echo Y luego: "echo -n "" | ./tp 2> /dev/null"
+	echo RESULTADO ESPERADO:
+	echo 
 	echo RESULTADO:
 	echo -n "" | ./tp 2> /dev/null
 
@@ -81,6 +95,8 @@ espacios
 	echo PRUEBA 9 - Mandamos un archivo vacio por terminal y se devuelve distinto de 0
 	echo Ejecutamos lo siguiente: "echo -n "" |./tp"
 	echo Y luego: "echo $ ?"
+	echo RESULTADO ESPERADO:
+	echo -1
 	echo RESULTADO:
 	echo -n "" | ./tp
 	echo $?
