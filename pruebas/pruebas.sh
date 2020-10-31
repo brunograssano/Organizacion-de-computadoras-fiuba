@@ -39,7 +39,8 @@ espacios
 	echo Codificacion del archivo:
 	cat quijoteCodificado.txt
 	echo
-	echo Decodificamos lo anterior y obtenemos el siguiente resultado
+	echo RESULTADO ESPERADO:
+	echo En un lugar de la Mancha de cuyo nombre no quiero acordarme
 	./tp -d -i quijoteCodificado.txt -o quijoteDecodificado.txt
 	echo RESULTADO:
 	cat quijoteDecodificado.txt
