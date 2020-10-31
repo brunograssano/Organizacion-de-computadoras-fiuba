@@ -9,16 +9,23 @@ echo Comienza la ejecucion de las pruebas
 
 espacios
 
-	echo PRUEBA 1 - Se codifica un archivo vacio llamado "archivoVacio.txt"
+	echo -e "\e[1m PRUEBA 1 \e[0m" - Se codifica un archivo vacio llamado "archivoVacio.txt"
 	echo
 	echo RESULTADO ESPERADO: 
 	echo El archivo esta vacio, no hay nada para codificar.
 	echo RESULTADO: 
 	./tp -i archivoVacio.txt -o codificado.txt 2>&1
+	if ["El archivo esta vacio, no hay nada para codificar." ==  ./tp -i archivoVacio.txt -o codificado.txt]
+	then
+			echo -e "\e[32m PRUEBA SUPERADA \e[0m"
+	else
+			echo -e "\e[31m PRUEBA FALLADA \e[0m"
+	fi
+
 
 espacios
 
-	echo PRUEBA 2 - Se manda el siguiente archivo que no esta en base 64 llamado "noEstoyEn64.txt":
+	echo -e "\e[1m PRUEBA 2 \e[0m" - Se manda el siguiente archivo que no esta en base 64 llamado "noEstoyEn64.txt":
 	echo
 	echo El archivo "noEstoyEn64.txt":
 	cat noEstoyEn64.txt
@@ -30,7 +37,7 @@ espacios
 
 espacios
 
-	echo PRUEBA 3 - Codificamos y decodificamos el archivo "quijote.txt" y esperamos obtener lo mismo:
+	echo -e "\e[1m PRUEBA 3 \e[0m" - Codificamos y decodificamos el archivo "quijote.txt" y esperamos obtener lo mismo:
 	echo
 	echo Archivo "quijote.txt" inicalmente:
 	cat quijote.txt
@@ -41,13 +48,20 @@ espacios
 	echo
 	echo RESULTADO ESPERADO:
 	echo En un lugar de la Mancha de cuyo nombre no quiero acordarme
-	./tp -d -i quijoteCodificado.txt -o quijoteDecodificado.txt
+	resultadoObtenido = ./tp -d -i quijoteCodificado.txt -o quijoteDecodificado.txt
+	echo resultadoObtenido
 	echo RESULTADO:
 	cat quijoteDecodificado.txt
+	if ["En un lugar de la Mancha de cuyo nombre no quiero acordarme" ==  resultadoObtenido]
+	then
+			echo -e "\e[32m PRUEBA SUPERADA \e[0m"
+	else
+			echo -e "\e[31m PRUEBA FALLADA \e[0m"
+	fi
 
 espacios
 
-	echo PRUEBA 4 - No mandamos ningun argumento al tp
+	echo -e "\e[1m PRUEBA 4 \e[0m" - No mandamos ningun argumento al tp
 	echo
 	echo RESULTADO ESPERADO:
 	echo Faltan argumentos
@@ -56,7 +70,7 @@ espacios
 
 espacios
 
-	echo PRUEBA 5 - Mandamos un archivo inexistente por terminal
+	echo -e "\e[1m PRUEBA 5 \e[0m" - Mandamos un archivo inexistente por terminal
 	echo
 	echo RESULTADO ESPERADO:
 	echo El archivo ingresado por terminal no existe o esta vacio.
@@ -65,7 +79,7 @@ espacios
 
 espacios
 
-	echo PRUEBA 6 - Al usar /dev/null no se muestran errores por stderr
+	echo -e "\e[1m PRUEBA 6 \e[0m"- Al usar /dev/null no se muestran errores por stderr
 	echo RESULTADO ESPERADO:
 	echo 
 	echo Ejecutamos lo siguiente: ./tp 2> /dev/null
@@ -74,7 +88,7 @@ espacios
 
 espacios
 
-	echo PRUEBA 7 - Codificafamos un archivo con solo ceros
+	echo -e "\e[1m PRUEBA 7 \e[0m" - Codificafamos un archivo con solo ceros
 	echo El archivo a codificar contiene: "'\x00\x00\x00'"
 	echo RESULTADO ESPERADO:
 	printf '\x00\x00\x00' | base64
@@ -83,7 +97,7 @@ espacios
 
 espacios
 
-	echo PRUEBA 8 - Mandamos un archivo vacio por terminal y el error no se muestra al mandarlo a /dev/null
+	echo -e "\e[1m PRUEBA 8 \e[0m" - Mandamos un archivo vacio por terminal y el error no se muestra al mandarlo a /dev/null
 	echo Ejecutamos lo siguiente: "echo -n "" |./tp"
 	echo Y luego: "echo -n "" | ./tp 2> /dev/null"
 	echo RESULTADO ESPERADO:
@@ -93,7 +107,7 @@ espacios
 
 espacios
 
-	echo PRUEBA 9 - Mandamos un archivo vacio por terminal y se devuelve distinto de 0
+	echo -e "\e[1m PRUEBA 9 \e[0m" - Mandamos un archivo vacio por terminal y se devuelve distinto de 0
 	echo Ejecutamos lo siguiente: "echo -n "" |./tp"
 	echo Y luego: "echo $ ?"
 	echo RESULTADO ESPERADO:
