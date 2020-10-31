@@ -43,7 +43,7 @@ void mostrarVersion(){
 	 printf("Version 1.0.1\n");
 }
 
-void manejarParametros(int cantidadArgumentos,char* argumentos[],char archivoInput[MAX_NOMBRE_ARCHIVO],char archivoOutput[MAX_NOMBRE_ARCHIVO],bool* pidioDecode){
+void manejarParametros(int cantidadArgumentos,char* argumentos[],char archivoInput[MAX_NOMBRE_ARCHIVO],char archivoOutput[MAX_NOMBRE_ARCHIVO],bool* pidioDecode,bool* pidioOtraOpcion){
     static struct option opcionesLargas[] = {
        {"input", required_argument, 0, 'i'},
        {"decode", no_argument, 0, 'd'},
@@ -53,8 +53,6 @@ void manejarParametros(int cantidadArgumentos,char* argumentos[],char archivoInp
        {0, 0, 0, 0}
     };
     int argumento;
-    //int digit_optind = 0;
-    //int this_option_optind = optind ? optind : 1;
     int indiceOpcion = 0;
     bool pidioAyuda = false, pidioVersion = false;
 
@@ -71,19 +69,20 @@ void manejarParametros(int cantidadArgumentos,char* argumentos[],char archivoInp
                 break;
             case VERSION:
                 if(!pidioVersion){
+                    (*pidioOtraOpcion) = true;
                     pidioVersion = true;
                     mostrarVersion();
                 }
                 break;
             case AYUDA:
                 if(!pidioAyuda){
+                    (*pidioOtraOpcion) = true;
                     pidioAyuda = true;
                     imprimirAyuda();
                 }
                 break;
             default:
-                fprintf(stderr, "Falta un argumento para: %c\n", argumento);
-                fprintf(stderr, "Puede ver ayuda enviando el parametro -h");
+                fprintf(stderr, "Puede ver ayuda enviando el parametro -h \n");
         }
     }
 
@@ -99,15 +98,11 @@ void manejarParametros(int cantidadArgumentos,char* argumentos[],char archivoInp
 ////--------------DECODIFICACION----------------////
 
 int decodificacion(FILE* entrada, FILE* salida){
-    int estadoFinal = 0;
-    int estadoTemporal;
-    while(!feof(entrada)){
-        estadoTemporal = decodificar(entrada,salida);
-        if(estadoTemporal == ERROR){
-            estadoFinal = ERROR;
-        }
+    int estado = 0;
+    while(!feof(entrada) && estado != ERROR){
+        estado = decodificar(entrada,salida);
     }
-    return estadoFinal;
+    return estado;
 }
 
 int manejarDecodificacionArchivos(char archivoInput[MAX_NOMBRE_ARCHIVO],char archivoOutput[MAX_NOMBRE_ARCHIVO]){
@@ -177,21 +172,21 @@ int manejarDecodificacion(char archivoInput[MAX_NOMBRE_ARCHIVO],char archivoOutp
   else if((tamanioInput == VACIO) && (tamanioOutput == VACIO) && !isatty(0)){
       estado = decodificacion(stdin,stdout);
   }
+  else{
+      fprintf(stderr, "Debe mandar mas argumentos, o mandar por entrada estandar. Puede ver ayuda enviando el parametro -h \n");
+      estado = ERROR;
+  }
   return estado;
 }
 
 ////--------------CODIFICACION----------------////
 
 int codificacion(FILE* entrada, FILE* salida){
-    int estadoFinal = 0;
-    int estadoTemporal;
-    while(!feof(entrada)){
-        estadoTemporal = codificar(entrada,salida);
-        if(estadoTemporal == ERROR){
-            estadoFinal = ERROR;
-        }
+    int estado = 0;
+    while(!feof(entrada) && estado != ERROR){
+        estado = codificar(entrada,salida);
     }
-    return estadoFinal;
+    return estado;
 }
 
 int manejarCodificacionArchivos(char archivoInput[MAX_NOMBRE_ARCHIVO],char archivoOutput[MAX_NOMBRE_ARCHIVO]){
@@ -261,6 +256,10 @@ int manejarCodificacion(char archivoInput[MAX_NOMBRE_ARCHIVO],char archivoOutput
     else if((tamanioInput == VACIO) && (tamanioOutput == VACIO) && !isatty(0)){
         estado = codificacion(stdin,stdout);
     }
+    else{
+        fprintf(stderr, "Debe mandar mas argumentos, o mandar por entrada estandar. Puede ver ayuda enviando el parametro -h \n");
+        estado = ERROR;
+    }
     return estado;
 }
 
@@ -269,15 +268,15 @@ int manejarCodificacion(char archivoInput[MAX_NOMBRE_ARCHIVO],char archivoOutput
 int main(int cantidadArgumentos, char* argumentos[]){
     char archivoInput[MAX_NOMBRE_ARCHIVO] = "";
     char archivoOutput[MAX_NOMBRE_ARCHIVO] = "";
-    bool pidioDecode = false;
-    int estado;
+    bool pidioDecode = false, pidioOtraOpcion = false;
+    int estado = 0;
 
-    manejarParametros(cantidadArgumentos,argumentos,archivoInput,archivoOutput,&pidioDecode);
+    manejarParametros(cantidadArgumentos,argumentos,archivoInput,archivoOutput,&pidioDecode, &pidioOtraOpcion);
 
-    if(pidioDecode){
+    if(pidioDecode && !pidioOtraOpcion){
         estado = manejarDecodificacion(archivoInput,archivoOutput);
     }
-    else{
+    else if(!pidioOtraOpcion){
         estado = manejarCodificacion(archivoInput,archivoOutput);
     }
 

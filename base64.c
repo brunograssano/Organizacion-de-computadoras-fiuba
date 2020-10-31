@@ -24,7 +24,10 @@ int codificar(FILE* plain, FILE* encoded){
 
     char textoACodificar[3] = "";
     char salidaCodificada[4] = "";
-    fread ( textoACodificar, 3, sizeof(char), plain );
+    int leidos = fread ( textoACodificar, 3, sizeof(char), plain );
+    if(leidos<=0){
+      return 0;
+    }
 
     int caracterCodificandose = textoACodificar[0];
 
@@ -74,7 +77,10 @@ int decodificar(FILE* encoded, FILE* plain){
 
     char textoADecodificar[4] = "";
     char salidaDecodificada[3] = "";
-    fread(textoADecodificar, 4, sizeof(char), encoded);
+    int leidos = fread(textoADecodificar, 4, sizeof(char), encoded);
+    if(leidos<=0){
+      return 0;
+    }
 
     for (long i=0; i<4; i++) {
         if (!esCaracterValido(textoADecodificar[i])) {
@@ -83,9 +89,7 @@ int decodificar(FILE* encoded, FILE* plain){
         }
     }
 
-    int caracterDecodificandose;
-
-    caracterDecodificandose = valorAscii[textoADecodificar[0]-43];
+    int caracterDecodificandose = valorAscii[textoADecodificar[0]-43];
     caracterDecodificandose = (caracterDecodificandose << 6) | valorAscii[textoADecodificar[1]-43];
     caracterDecodificandose = textoADecodificar[2]=='=' ? (caracterDecodificandose << 6) : ((caracterDecodificandose << 6) | valorAscii[textoADecodificar[2]-43]);
     caracterDecodificandose = textoADecodificar[3]=='=' ? (caracterDecodificandose << 6) : ((caracterDecodificandose << 6) | valorAscii[textoADecodificar[3]-43]);
