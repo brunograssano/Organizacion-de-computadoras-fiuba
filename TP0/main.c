@@ -109,7 +109,7 @@ int manejarDecodificacionArchivos(char archivoInput[MAX_NOMBRE_ARCHIVO],char arc
   int estado;
   FILE* inputFile = fopen(archivoInput, MODO_LECTURA);
   if(inputFile == NULL){
-    fprintf(stderr, "Hubo un error al crear el archivo de salida en: %s",archivoInput);
+    fprintf(stderr, "Hubo un error al abrir el archivo en: %s",archivoInput);
     return ERROR;
   }
 
@@ -131,7 +131,7 @@ int manejarDecodificacionEntradaArchivoSalidaEstandar(char archivoInput[MAX_NOMB
   int estado = 0;
   FILE* inputFile = fopen(archivoInput, MODO_LECTURA);
   if(inputFile == NULL){
-    fprintf(stderr, "Hubo un error al crear el archivo de salida en: %s",archivoInput);
+    fprintf(stderr, "Hubo un error al abrir el archivo en: %s",archivoInput);
     return ERROR;
   }
 
@@ -193,7 +193,7 @@ int manejarCodificacionArchivos(char archivoInput[MAX_NOMBRE_ARCHIVO],char archi
   int estado;
   FILE* inputFile = fopen(archivoInput, MODO_LECTURA);
   if(inputFile == NULL){
-    fprintf(stderr, "Hubo un error al crear el archivo de salida en: %s",archivoInput);
+    fprintf(stderr, "Hubo un error al abrir el archivo de en: %s",archivoInput);
     return ERROR;
   }
 
@@ -215,7 +215,7 @@ int manejarCodificacionEntradaArchivoSalidaEstandar(char archivoInput[MAX_NOMBRE
   int estado = 0;
   FILE* inputFile = fopen(archivoInput, MODO_LECTURA);
   if(inputFile == NULL){
-    fprintf(stderr, "Hubo un error al crear el archivo de salida en: %s",archivoInput);
+    fprintf(stderr, "Hubo un error al abrir el archivo en: %s",archivoInput);
     return ERROR;
   }
 
