@@ -13,12 +13,12 @@ espacios
 	echo
 
 	echo RESULTADO ESPERADO: 
-	resultadoEsperado="El archivo esta vacio, no hay nada para codificar."
-	echo El archivo esta vacio, no hay nada para codificar.
+	resultadoEsperado=""
+	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO: 
 	resultadoObtenido=$(./tp -i archivoVacio.txt -o codificado.txt 2>&1)
-	
-	if [ resultadoEsperado == resultadoObtenido ];
+	echo
+	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
 	then
 			echo -e "\e[32m PRUEBA SUPERADA \e[0m"
 	else
@@ -81,10 +81,10 @@ espacios
 	echo "Ejecutamos: ./tp"
 	echo " "
 	echo RESULTADO ESPERADO:
-	resultadoEsperado=$(printf"Debe mandar mas argumentos, o mandar por entrada estandar. Puede ver ayuda enviando el parametro -h" \n)
+	resultadoEsperado=$(printf "Debe mandar mas argumentos, o mandar por entrada estandar. Puede ver ayuda enviando el parametro -h \n")
 	echo "$resultadoEsperado"
 	echo RESULTADO OBTENIDO:
-	resultadoObtenido="$(./tp)"
+	resultadoObtenido=$(./tp 2>&1)
 	echo "$resultadoObtenido"	
 	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
 	then
@@ -98,6 +98,7 @@ espacios
 
 	echo -e "\e[1m PRUEBA 5 \e[0m" - Mandamos un archivo inexistente por terminal
 	echo
+	echo "Ejectuamos lo siguiente: cat archivoInexistente.txt | ./tp 2>&1"
 	echo RESULTADO ESPERADO:
 	resultadoEsperado=$(printf "El archivo ingresado por terminal no existe o esta vacio.")
 	echo $resultadoEsperado
@@ -133,17 +134,17 @@ espacios
 	echo -e "\e[1m PRUEBA 7 \e[0m" - Codificafamos un archivo con solo ceros
 	echo El archivo a codificar contiene: "'\x00\x00\x00'"
 	echo RESULTADO ESPERADO:
-	esperado="$(printf '\x00\x00\x00' | base64)"
-  echo $esperado
-	echo RESULTADO:
-	obtenido="$(printf '\x00\x00\x00' | ./tp)"
-  echo $obtenido
-  if [esperado = obtenido];
-  then
-      echo -e "\e[32m PRUEBA SUPERADA \e[0m"
-  else
-      echo -e "\e[31m PRUEBA FALLADA \e[0m"
-  fi
+	resultadoEsperado="$(printf '\x00\x00\x00' | base64)"
+  	echo $resultadoEsperado
+	echo RESULTADO OBTENIDO:
+	resultadoObtenido="$(printf '\x00\x00\x00' | ./tp)"
+  	echo $resultadoObtenido
+  	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
+	then
+			echo -e "\e[32m PRUEBA SUPERADA \e[0m"
+	else
+			echo -e "\e[31m PRUEBA FALLADA \e[0m"
+	fi
 
 espacios
 
@@ -151,19 +152,36 @@ espacios
 	echo Ejecutamos lo siguiente: "echo -n "" |./tp"
 	echo Y luego: "echo -n "" | ./tp 2> /dev/null"
 	echo RESULTADO ESPERADO:
-	echo
-	echo RESULTADO:
-	echo -n "" | ./tp 2> /dev/null
+	resultadoEsperado=""
+	echo $resultadoEsperado
+	echo RESULTADO OBTENIDO:
+	echo -n "" | ./tp
+	resultadoObtenido="$( echo -n "" | ./tp 2> /dev/null )"
+	echo $resultadoObtenido
+	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
+	then
+			echo -e "\e[32m PRUEBA SUPERADA \e[0m"
+	else
+			echo -e "\e[31m PRUEBA FALLADA \e[0m"
+	fi
 
 espacios
 
-	echo -e "\e[1m PRUEBA 9 \e[0m" - Mandamos un archivo vacio por terminal y se devuelve distinto de 0
+	echo -e "\e[1m PRUEBA 9 \e[0m" - Mandamos un archivo vacio por terminal y no se hace nada
 	echo Ejecutamos lo siguiente: "echo -n "" |./tp"
-	echo Y luego: "echo $ ?"
 	echo RESULTADO ESPERADO:
-	echo -1
-	echo RESULTADO:
-	echo -n "" | ./tp
-	echo $?
+	resultadoEsperado=""
+	echo $resultadoEsperado
+	echo RESULTADO OBTENIDO:
+	echo
+	resultadoObtenido="$(echo -n "" | ./tp)"
+	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
+	then
+			echo -e "\e[32m PRUEBA SUPERADA \e[0m"
+	else
+			echo -e "\e[31m PRUEBA FALLADA \e[0m"
+	fi
+	
+	
 
 espacios
