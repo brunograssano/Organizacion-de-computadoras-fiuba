@@ -102,6 +102,7 @@ int decodificacion(FILE* entrada, FILE* salida){
     while(!feof(entrada) && estado != ERROR){
         estado = decodificar(entrada,salida);
     }
+    printf("\n");
     return estado;
 }
 
@@ -186,6 +187,7 @@ int codificacion(FILE* entrada, FILE* salida){
     while(!feof(entrada) && estado != ERROR){
         estado = codificar(entrada,salida);
     }
+    printf("\n");
     return estado;
 }
 

@@ -6,7 +6,7 @@
 #define BINARIO_255 0xFF
 
 const char caracteresBase64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-int valorAscii[] = { 62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5,
+const int valorAscii[] = { 62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5,
                     6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, -1, 26, 27, 28,
                     29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51 };
 
@@ -23,11 +23,15 @@ int codificar(FILE* plain, FILE* encoded){
     }
 
     char textoACodificar[3] = "";
-    char salidaCodificada[4] = "";
-    int leidos = fread ( textoACodificar, 3, sizeof(char), plain );
-    if(leidos<=0){
+    char salidaCodificada[4] = "====";
+    int leido1, leido2, leido3;
+
+    leido1 = fread ( &textoACodificar[0], 1, sizeof(char), plain );
+    if(leido1<=0){
       return 0;
     }
+    leido2 = fread ( &textoACodificar[1], 1, sizeof(char), plain );
+    leido3 = fread ( &textoACodificar[2], 1, sizeof(char), plain );
 
     int caracterCodificandose = textoACodificar[0];
 
@@ -37,21 +41,13 @@ int codificar(FILE* plain, FILE* encoded){
     salidaCodificada[0]   = caracteresBase64[(caracterCodificandose >> 18) & BINARIO_63];
     salidaCodificada[1] = caracteresBase64[(caracterCodificandose >> 12) & BINARIO_63];
 
-    salidaCodificada[2] = caracteresBase64[(caracterCodificandose >> 6) & BINARIO_63];
-    salidaCodificada[3] = caracteresBase64[caracterCodificandose & BINARIO_63];
-    /*
-    if (1 < 4) {
-      salidaCodificada[2] = caracteresBase64[(caracterCodificandose >> 6) & BINARIO_63];
-    } else {
-      salidaCodificada[2] = '=';
+    if(leido2>0){
+        salidaCodificada[2] = caracteresBase64[(caracterCodificandose >> 6) & BINARIO_63];
+    }
+    if(leido3>0){
+        salidaCodificada[3] = caracteresBase64[caracterCodificandose & BINARIO_63];
     }
 
-    if (i+2 < 4) {
-      salidaCodificada[3] = caracteresBase64[caracterCodificandose & BINARIO_63];
-    } else {
-      salidaCodificada[3] = '=';
-    }
-    */
     fwrite(salidaCodificada, sizeof(char), 4, encoded);
 
     return 0;
@@ -82,7 +78,7 @@ int decodificar(FILE* encoded, FILE* plain){
       return 0;
     }
 
-    for (long i=0; i<4; i++) {
+    for (int i=0; i<4; i++) {
         if (!esCaracterValido(textoADecodificar[i])) {
             fprintf(stderr, "El archivo enviado no esta en base 64.\n");
             return ERROR;
