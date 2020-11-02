@@ -98,6 +98,13 @@ int decodificar(FILE* encoded, FILE* plain){
       salidaDecodificada[2] = caracterDecodificandose & BINARIO_255;
     }
 
-    fwrite(salidaDecodificada, sizeof(char), 3, plain);
+    fwrite(&salidaDecodificada[0], sizeof(char), 1, plain);
+    if(salidaDecodificada[1] != '\0'){
+        fwrite(&salidaDecodificada[1], sizeof(char), 1, plain);
+    }
+    if(salidaDecodificada[2] != '\0'){
+        fwrite(&salidaDecodificada[2], sizeof(char), 1, plain);
+    }
+
     return 0;
 }
