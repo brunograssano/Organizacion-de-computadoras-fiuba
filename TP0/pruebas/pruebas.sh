@@ -118,7 +118,7 @@ espacios
 	echo RESULTADO ESPERADO:
 	resultadoEsperado=""
 	echo $resultadoEsperado
-	echo Ejecutamos lo siguiente: ./tp 2> /dev/null
+	echo Ejecutamos lo siguiente: "./tp 2> /dev/null"
 	echo RESULTADO OBTENIDO:
 	resultadoObtenido=$(./tp 2> /dev/null)
 	echo $resultadoObtenido
@@ -132,7 +132,7 @@ espacios
 espacios
 
 	echo -e "\e[1m PRUEBA 7 \e[0m" - Codificafamos un archivo con solo ceros
-	echo El archivo a codificar contiene: "'\x00\x00\x00'"
+	echo Ejecutamos lo siguiente: "printf '\x00\x00\x00' | base64"
 	echo RESULTADO ESPERADO:
 	resultadoEsperado="$(printf '\x00\x00\x00' | base64)"
   	echo $resultadoEsperado
@@ -185,3 +185,72 @@ espacios
 	
 
 espacios
+
+	echo -e "\e[1m PRUEBA 10 \e[0m" - Codificamos el archivo main.c, lo decodificamos, luego lo compilamos y codificamos otro archivo
+	echo Ejecutamos lo siguiente: "./tp -i main.c -o mainCodificado.txt"
+	echo Luego: "./tp -d -i mainCodificado.txt -o main2.c"
+	echo Luego: "gcc main2.c base64.c -o tpPrueba10"
+	echo Luego: "./tpPrueba10 -i quijote.txt -o quijoteCodificadoPrueba10.txt"
+	echo Luego "cat quijoteCodificadoPrueba10.txt"
+	
+	./tp -i main.c -o mainCodificado.txt
+	./tp -d -i mainCodificado.txt -o main2.c
+	gcc main2.c base64.c -o tpPrueba10
+	./tpPrueba10 -i quijote.txt -o quijoteCodificadoPrueba10.txt
+	
+	echo RESULTADO ESPERADO:
+	resultadoEsperado="RW4gdW4gbHVnYXIgZGUgTGEgTWFuY2hhIGRlIGN1eW8gbm9tYnJlIG5vIHF1aWVybyBhY29yZGFybWUK"
+	echo $resultadoEsperado
+	echo RESULTADO OBTENIDO:
+	resultadoObtenido="$(cat quijoteCodificadoPrueba10.txt)"
+	echo $resultadoObtenido
+	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
+	then
+			echo -e "\e[32m PRUEBA SUPERADA \e[0m"
+	else
+			echo -e "\e[31m PRUEBA FALLADA \e[0m"
+	fi
+	
+	echo -e "\e[1m PRUEBA 11 \e[0m" - Codificamos el archivo objeto tpPrueba11, lo decodificamos sin problemas
+	echo Ejecutamos lo siguiente: "./tp -i tpPrueba11 -o tpPrueba11Codificado.txt"
+	echo Luego: "./tp -d -i tpPrueba11Codificado.txt -o tpPrueba11Decodificado > /dev/null"
+	echo Luego: "echo $?"
+	
+	echo ""
+	
+	./tp -i tpPrueba11 -o tpPrueba11Codificado.txt
+	./tp -d -i tpPrueba11Codificado.txt -o tpPrueba11Decodificado 
+
+	
+	echo RESULTADO ESPERADO:
+	resultadoEsperado="0"
+	echo $resultadoEsperado
+	echo RESULTADO OBTENIDO:
+	resultadoObtenido="$(echo $?)"
+	echo $resultadoObtenido
+	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
+	then
+			echo -e "\e[32m PRUEBA SUPERADA \e[0m"
+	else
+			echo -e "\e[31m PRUEBA FALLADA \e[0m"
+	fi
+	
+	echo -e "\e[1m PRUEBA 12 \e[0m" - No mandamos ningun argumento al tp y devolvemos distinto de 0
+	echo " "
+	echo "Ejecutamos: ./tp"
+	echo "Luego: echo $ ?"
+	echo " "
+	./tp
+	resultadoObtenido=$(echo $?)
+	echo "Ejecutamos y obtenemos:"
+	echo "RESULTADO OBTENIDO:"
+	printf "$resultadoObtenido\n"
+	echo "RESULTADO ESPERADO:"
+	echo "Distinto de 0"
+		
+	if [ "0" != "$resultadoObtenido" ];
+	then
+			echo -e "\e[32m PRUEBA SUPERADA \e[0m"
+	else
+			echo -e "\e[31m PRUEBA FALLADA \e[0m"
+	fi
