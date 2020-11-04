@@ -166,7 +166,7 @@ int manejarDecodificacion(char archivoInput[MAX_NOMBRE_ARCHIVO],char archivoOutp
   else if(tamanioInput > VACIO && tamanioOutput == VACIO){
       estado = manejarDecodificacionEntradaArchivoSalidaEstandar(archivoInput);
   }
-  else if(tamanioInput == VACIO && tamanioOutput > VACIO){
+  else if(tamanioInput == VACIO && tamanioOutput > VACIO  && !isatty(0)){
       estado = manejarDecodificacionEntradaEstandarSalidaArchivo(archivoOutput);
   }
   else if((tamanioInput == VACIO) && (tamanioOutput == VACIO) && !isatty(0)){
@@ -250,7 +250,7 @@ int manejarCodificacion(char archivoInput[MAX_NOMBRE_ARCHIVO],char archivoOutput
     else if(tamanioInput > VACIO && tamanioOutput == VACIO){
         estado = manejarCodificacionEntradaArchivoSalidaEstandar(archivoInput);
     }
-    else if(tamanioInput == VACIO && tamanioOutput > VACIO){
+    else if(tamanioInput == VACIO && tamanioOutput > VACIO  && !isatty(0)){
         estado = manejarCodificacionEntradaEstandarSalidaArchivo(archivoOutput);
     }
     else if((tamanioInput == VACIO) && (tamanioOutput == VACIO) && !isatty(0)){
