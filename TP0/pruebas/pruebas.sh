@@ -96,14 +96,14 @@ espacios
 
 espacios
 
-	echo -e "\e[1m PRUEBA 5 \e[0m" - Mandamos un archivo inexistente por terminal
+	echo -e "\e[1m PRUEBA 5 \e[0m" - Pedimos la version y la obtenemos
 	echo
-	echo "Ejectuamos lo siguiente: cat archivoInexistente.txt | ./tp 2>&1"
+	echo "Ejectuamos lo siguiente: ./tp -v"
 	echo RESULTADO ESPERADO:
-	resultadoEsperado=$(printf "El archivo ingresado por terminal no existe o esta vacio.")
+	resultadoEsperado=$(printf "Version 1.0.1")
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
-	resultadoObtenido=$( cat archivoInexistente.txt | ./tp 2>&1 )
+	resultadoObtenido=$( ./tp -v )
 	echo $resultadoObtenido
 	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
 	then
