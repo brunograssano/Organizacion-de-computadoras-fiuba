@@ -35,10 +35,10 @@ int codificar(FILE* plain, FILE* encoded){
 
     int caracterCodificandose = textoACodificar[0];
 
-    caracterCodificandose = (1 < 4) ? (caracterCodificandose << 8 | textoACodificar[1]) : caracterCodificandose << 8;
-    caracterCodificandose = (2 < 4) ? (caracterCodificandose << 8 | textoACodificar[2]) : caracterCodificandose << 8;
+    caracterCodificandose = (caracterCodificandose << 8 | textoACodificar[1]);
+    caracterCodificandose = (caracterCodificandose << 8 | textoACodificar[2]);
 
-    salidaCodificada[0]   = caracteresBase64[(caracterCodificandose >> 18) & BINARIO_63];
+    salidaCodificada[0] = caracteresBase64[(caracterCodificandose >> 18) & BINARIO_63];
     salidaCodificada[1] = caracteresBase64[(caracterCodificandose >> 12) & BINARIO_63];
 
     if(leido2>0){
