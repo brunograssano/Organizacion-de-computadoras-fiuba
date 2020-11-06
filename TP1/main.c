@@ -2,8 +2,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <getopt.h>
+#include "euclides.h"
 
 #define DIVISOR 'd'
 #define MULTIPLO 'm'
@@ -13,14 +13,7 @@
 #define MAX_NOMBRE_ARCHIVO 256
 #define MODO_ESCRITURA "w"
 
-
-typedef struct configuracion{
-  bool pidioOtraOpcion;
-  bool soloMultiplo;
-  bool soloDivisor;
-  int primerNumero;
-  int segundoNumero;
-}configuracion_t;
+const int ERROR = -1, VACIO=0, TERMINO = -1;
 
 void mostrarAyuda(){
   printf("Uso: \n");
@@ -34,10 +27,12 @@ void mostrarAyuda(){
   printf(" -m, --multiple   Entrega solo el multiplo.\n");
   printf(" -d, --divisor    Entrega solo el divisor.\n");
   printf("Ejemplos: \n");
-  printf("	tp -o archivoSalida 256 192");
-  printf("	tp 256 192");
-  printf("	tp -m 256 192");
-  printf("	tp -d 256 192");
+  printf("	tp -o archivoSalida 256 192\n");
+  printf("	tp -o - 256 192 (En este caso se toma como que se quiere stdout)\n");
+  printf("	tp 256 192\n");
+  printf("	tp -m 256 192\n");
+  printf("	tp -d 256 192\n");
+  printf("	tp -o -m archivoSalida 256 192\n");
 }
 
 void mostrarVersion(){
@@ -46,7 +41,7 @@ void mostrarVersion(){
 
 configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],char archivoOutput[MAX_NOMBRE_ARCHIVO]){
   static struct option opcionesLargas[] = {
-     {"multiple", required_argument, 0, 'm'},
+     {"multiple", no_argument, 0, 'm'},
      {"divisor", no_argument, 0, 'd'},
      {"help", no_argument, 0, 'h'},
      {"output", required_argument, 0, 'o'},
@@ -88,23 +83,44 @@ configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],cha
       }
   }
 
-  if(optind < cantidadArgumentos){
-      fprintf( stderr, "No son opciones validas las siguientes:\n");
-      while (optind < cantidadArgumentos){
-          fprintf( stderr, "%s\n", argumentos[optind++]);
-      }
+  if(optind<cantidadArgumentos){
+      configuracion.primerNumero = atoi(argumentos[optind]);
+      optind++;
+  }
+  if(optind<cantidadArgumentos){
+      configuracion.segundoNumero = atoi(argumentos[optind]);
   }
 
   return configuracion;
 }
 
-
 int main(int cantidadArgumentos, char* argumentos[]){
   int estado = 0;
-  bool pidioOtraOpcion = false, soloMultiplo = false, soloDivisor = false;
   char archivoOutput[MAX_NOMBRE_ARCHIVO] = "";
 
   configuracion_t configuracion = manejarParametros(cantidadArgumentos,argumentos,archivoOutput);
+  if(!configuracion.pidioOtraOpcion && (configuracion.primerNumero<2 || configuracion.segundoNumero<2)){
+      fprintf(stderr, "Los numeros tienen que ser mayor o igual a 2. Puede ver ayuda mandando -h\n");
+      return ERROR;
+  }
+
+  if(!configuracion.pidioOtraOpcion && configuracion.soloDivisor && configuracion.soloMultiplo){
+      fprintf(stderr, "Uso mal las opciones, no es valido mandar -d y -m juntos. Puede ver ayuda mandando -h\n");
+      return ERROR;
+  }
+
+  if(strlen(archivoOutput)>VACIO && archivoOutput[0]!='-' && !configuracion.pidioOtraOpcion){
+      FILE* fileOutput = fopen(archivoOutput,MODO_ESCRITURA);
+      if(fileOutput==NULL){
+          fprintf(stderr, "No se pudo abrir el archivo enviado.\n");
+          return ERROR;
+      }
+      estado = buscarNumeros(configuracion,fileOutput);
+      fclose(fileOutput);
+  }
+  else if(!configuracion.pidioOtraOpcion){
+      estado = buscarNumeros(configuracion,stdout);
+  }
 
   return estado;
 }
