@@ -1046,6 +1046,17 @@ $L37:
 	beq	$2,$0,$L38
 	nop
 
+	move	$4,$0
+	lw	$2,%call16(isatty)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,isatty
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	bne	$2,$0,$L38
+	nop
+
 	lw	$4,52($fp)
 	lw	$2,%got(manejarDecodificacionEntradaEstandarSalidaArchivo)($28)
 	move	$25,$2
@@ -1600,6 +1611,17 @@ $L59:
 	lw	$2,32($fp)
 	slt	$2,$3,$2
 	beq	$2,$0,$L60
+	nop
+
+	move	$4,$0
+	lw	$2,%call16(isatty)($28)
+	move	$25,$2
+	.reloc	1f,R_MIPS_JALR,isatty
+1:	jalr	$25
+	nop
+
+	lw	$28,16($fp)
+	bne	$2,$0,$L60
 	nop
 
 	lw	$4,52($fp)
