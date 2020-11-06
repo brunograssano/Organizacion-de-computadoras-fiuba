@@ -13,8 +13,7 @@ espacios
 	echo
 
 	echo RESULTADO ESPERADO:
-	resultadoEsperado="5
-	10"
+	resultadoEsperado="5 $newline 10"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
 	resultadoObtenido=$(./tp 5 10 )
@@ -62,8 +61,7 @@ espacios
 	echo
 
 	echo RESULTADO ESPERADO:
-	resultadoEsperado="64
-	768"
+	resultadoEsperado="64 $newline 768"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
 	resultadoObtenido=$(./tp 256 192 )
@@ -111,8 +109,7 @@ espacios
 	echo
 
 	echo RESULTADO ESPERADO:
-	resultadoEsperado="1
-	1437634"
+	resultadoEsperado="1 $newline 1437634"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
 	resultadoObtenido=$(./tp 1111 1294 )
