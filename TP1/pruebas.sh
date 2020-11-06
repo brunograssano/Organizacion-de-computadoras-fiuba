@@ -64,7 +64,7 @@ espacios
 	echo
 
 	echo RESULTADO ESPERADO:
-	resultadoEsperado="64 $newline 768"
+	resultadoEsperado="$(printf "64\n768")"	
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
 	resultadoObtenido=$(./tp 256 192 )
@@ -114,8 +114,8 @@ espacios
 	echo -e "\e[1m PRUEBA 7 \e[0m" - Se buscan el mcd y mcm de 1111 1294
 	echo
 
-	echo RESULTADO ESPERADO:
-	resultadoEsperado="1 $newline 1437634"
+	echo RESULTADO ESPERADO:	
+	resultadoEsperado="$(printf "1\n1437634")"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
 	resultadoObtenido=$(./tp 1111 1294 )
