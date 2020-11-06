@@ -13,7 +13,7 @@ espacios
 	echo
 
 	echo RESULTADO ESPERADO:
-	resultadoEsperado="$(printf "5 \n 10")"
+	resultadoEsperado="$(printf "5\n10")"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
 	resultadoObtenido=$(./tp 5 10 )
