@@ -32,7 +32,7 @@ espacios
 	resultadoEsperado="5"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
-	resultadoObtenido=$(./tp 5 10 )
+	resultadoObtenido=$(./tp -d 5 10 )
 	echo
 	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
 	then
@@ -48,7 +48,7 @@ espacios
 	resultadoEsperado="10"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
-	resultadoObtenido=$(./tp 5 10 )
+	resultadoObtenido=$(./tp -m 5 10 )
 	echo
 	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
 	then
@@ -80,7 +80,7 @@ espacios
 	resultadoEsperado="64"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
-	resultadoObtenido=$(./tp 256 192 )
+	resultadoObtenido=$(./tp -d 256 192 )
 	echo
 	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
 	then
@@ -96,7 +96,7 @@ espacios
 	resultadoEsperado="768"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
-	resultadoObtenido=$(./tp 256 192 )
+	resultadoObtenido=$(./tp -m 256 192 )
 	echo
 	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
 	then
@@ -128,7 +128,7 @@ espacios
 	resultadoEsperado="1"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
-	resultadoObtenido=$(./tp 1111 1294 )
+	resultadoObtenido=$(./tp -d 1111 1294 )
 	echo
 	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
 	then
@@ -144,7 +144,7 @@ espacios
 	resultadoEsperado="1437634"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
-	resultadoObtenido=$(./tp 1111 1294 )
+	resultadoObtenido=$(./tp -m 1111 1294 )
 	echo
 	if [ "$resultadoEsperado" == "$resultadoObtenido" ];
 	then
