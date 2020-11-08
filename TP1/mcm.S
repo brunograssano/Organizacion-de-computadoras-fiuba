@@ -1,21 +1,21 @@
 
 #include <sys/regdef.h>
 
-#define SS 8/*Stack size*/
+#define SS 36/*Stack size*/
 
 /*ABA CALLER*/
 #define O_A1 (SS+4)
 #define O_A0 (SS)
 
-/*SRA*/ 
-#define O_RA 16
-#define O_GP 12
-#define O_FP 8
+/*SRA*/
+#define O_RA 32
+#define O_GP 28
+#define O_FP 24
 
 
 /*LTA*/
 /*VARIABLES LOCALES*/
-#define O_RESULTADO_MULTIPLICACION 0
+#define O_RESULTADO_MULTIPLICACION 16
 /*VARIABLES TEMPORALES*/
 
 
@@ -56,12 +56,12 @@ mcm:
 	mflo v0
 
 	lw ra, O_RA(sp)
-	lw gp, O_GP(sp) 
-	lw fp, O_FP(sp) 
+	lw gp, O_GP(sp)
+	lw fp, O_FP(sp)
 
 	/*Desarmar stack*/
 	addiu sp, sp, SS
 
 	jr ra
 
-.end mcm 
+.end mcm
