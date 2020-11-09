@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <limits.h>
 #include "euclides.h"
 
 #define DIVISOR 'd'
@@ -48,7 +49,7 @@ configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],cha
      {"version", no_argument, 0, 'v'},
      {0, 0, 0, 0}
   };
-  configuracion_t configuracion = {false,false,false,0,0};
+  configuracion_t configuracion = {false,false,false,false,0,0};
   int argumento;
   int indiceOpcion = 0;
   bool pidioAyuda = false, pidioVersion = false;
@@ -84,21 +85,37 @@ configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],cha
   }
 
   if(optind<cantidadArgumentos){
+    unsigned long numeroCompleto = atol(argumentos[optind]);
+    if(numeroCompleto>UINT_MAX){
+      configuracion.overflow = true;
+    }
       configuracion.primerNumero = atoi(argumentos[optind]);
       optind++;
   }
   if(optind<cantidadArgumentos){
-      configuracion.segundoNumero = atoi(argumentos[optind]);
+    unsigned long numeroCompleto = atol(argumentos[optind]);
+    if(numeroCompleto>UINT_MAX){
+      configuracion.overflow = true;
+    }
+    configuracion.segundoNumero = atoi(argumentos[optind]);
   }
-
   return configuracion;
 }
 
 int main(int cantidadArgumentos, char* argumentos[]){
   int estado = 0;
   char archivoOutput[MAX_NOMBRE_ARCHIVO] = "";
-
+  if(cantidadArgumentos == 1){
+    fprintf(stderr, "No se enviaron argumentos. Puede ver ayuda mandando -h\n");
+    return ERROR;
+  }
   configuracion_t configuracion = manejarParametros(cantidadArgumentos,argumentos,archivoOutput);
+
+  if(configuracion.overflow){
+      fprintf(stderr, "Los numeros enviados no pueden ser mayores al limite del int. Puede ver ayuda mandando -h\n");
+      return ERROR;
+  }
+
   if(!configuracion.pidioOtraOpcion && (configuracion.primerNumero<2 || configuracion.segundoNumero<2)){
       fprintf(stderr, "Los numeros tienen que ser mayor o igual a 2. Puede ver ayuda mandando -h\n");
       return ERROR;

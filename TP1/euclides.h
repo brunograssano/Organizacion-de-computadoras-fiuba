@@ -9,6 +9,7 @@ typedef struct configuracion{
   bool pidioOtraOpcion;
   bool soloMultiplo;
   bool soloDivisor;
+  bool overflow;
   unsigned int primerNumero;
   unsigned int segundoNumero;
 }configuracion_t;

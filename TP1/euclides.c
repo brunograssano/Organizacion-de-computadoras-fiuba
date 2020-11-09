@@ -1,6 +1,7 @@
-
+#include <limits.h>
 #include "euclides.h"
-
+#define ERROR -1
+#define EXITO 0
 
 #ifndef USE_MIPS
 
@@ -15,6 +16,10 @@ unsigned int mcd(unsigned int m, unsigned int n){
 }
 
 unsigned int mcm(unsigned int m, unsigned int n){
+    unsigned long producto = (unsigned long)m*(unsigned long)n;
+    if(producto > UINT_MAX){
+        return 0;
+    }
     return (m*n)/mcd(m,n);
 }
 
@@ -40,6 +45,10 @@ int buscarNumeros(configuracion_t configuracion,FILE* salida){
 
     if(configuracion.soloMultiplo){
         minimoComunMultiplo = mcm(m,n);
+        if(minimoComunMultiplo == 0){
+            fprintf(stderr, "Hubo problemas por overflow al intentar calcular el mcm\n");
+            return ERROR;
+        }
         fprintf(salida,"%i",minimoComunMultiplo);
     }
     else if(configuracion.soloDivisor){
@@ -48,9 +57,13 @@ int buscarNumeros(configuracion_t configuracion,FILE* salida){
     }
     else{
         minimoComunMultiplo = mcm(m,n);
+        if(minimoComunMultiplo == 0){
+            fprintf(stderr, "Hubo problemas por overflow al intentar calcular el mcm\n");
+            return ERROR;
+        }
         maximoComunDivisor = mcd(m,n);
         fprintf(salida,"%i\n%i",maximoComunDivisor,minimoComunMultiplo);
     }
 
-    return 0;
+    return EXITO;
 }
