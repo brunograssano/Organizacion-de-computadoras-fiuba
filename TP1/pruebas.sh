@@ -413,7 +413,7 @@ espacios
 	fi
 espacios
 
-	echo -e "\e[1m PRUEBA 21 \e[0m" - Le enviamos caracteres especiales y devolvemos distinto de 0
+	echo -e "\e[1m PRUEBA 22 \e[0m" - Le enviamos caracteres especiales y devolvemos distinto de 0
 	echo " "
 	echo "Ejecutamos: ./tp @ !"
 	echo "Luego: echo $ ?"
