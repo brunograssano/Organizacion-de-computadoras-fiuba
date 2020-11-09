@@ -1,25 +1,22 @@
 
 #include <sys/regdef.h>
 
-#define SS 36/*Stack size*/
+#define SS 32/*Stack size*/
 
 /*ABA CALLER*/
 #define O_A1 (SS+4)
 #define O_A0 (SS)
 
-/*SRA*/
-#define O_RA 32
-#define O_GP 28
-#define O_FP 24
+/*SRA (de 24 a 36)*/
+#define O_RA 24
+#define O_GP 20
+#define O_FP 16
 
-
-/*LTA*/
+/*LTA (no se usa)*/
 /*VARIABLES LOCALES*/
-#define O_RESULTADO_MULTIPLICACION 16
 /*VARIABLES TEMPORALES*/
 
-
-/*ABA*/
+/*ABA  (de 0 a 16)*/
 
 .extern mcd
 .globl mcm
@@ -28,34 +25,33 @@
 .ent mcm
 
 mcm:
-
 	/*Hacemos espacio para el stack*/
 	subu sp, sp, SS
 
 	/*SRA*/
-	sw ra, O_RA(sp)
+	sw ra, O_RA(sp) 	/* Guardamos el retorno */
 	sw fp, O_FP(sp)
 	sw gp, O_GP(sp)
 	move fp, sp
 
 	/*ABA CALLER*/
-	sw a0, O_A0(sp) /**/
-	sw a1, O_A1(sp) /**/
-
-	multu a0, a1 /*$LO <- m * n*/
-	mflo t0 /*t0 <- m*n */
-
-	sw t0, O_RESULTADO_MULTIPLICACION(fp)
+	sw a0, O_A0(sp) 	/*Guardamos lo recibido en el ABA del caller*/
+	sw a1, O_A1(sp)
 
 	jal mcd
 
-	lw t0, O_RESULTADO_MULTIPLICACION(fp)
+	lw a0, O_A0(sp) 	/* Obtenemos lo recibido devuelta*/
+	lw a1, O_A1(sp)
 
-	div t0, v0
+	add t0, zero, zero
+	multu a0, a1 			/*$LO <- m * n (se guarda el resultado en $LO)*/
+	mflo t0 					/*t0 <- m*n (Obtenemos el resultado)*/
 
-	mflo v0
+	div t0, v0				/* En v0 esta el resultado de mcd */
 
-	lw ra, O_RA(sp)
+	mflo v0						/* Devolvemos tambien en v0 */
+
+	lw ra, O_RA(sp)		/* Restauramos gp,fp y obtenemos la direccion de retorno*/
 	lw gp, O_GP(sp)
 	lw fp, O_FP(sp)
 
