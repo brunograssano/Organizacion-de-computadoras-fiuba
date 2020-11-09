@@ -44,13 +44,17 @@ mcm:
 	lw a1, O_A1(sp)
 
 	add t0, zero, zero
+	add $HI, zero, zero
 	multu a0, a1 			/*$LO <- m * n (se guarda el resultado en $LO)*/
 	mflo t0 					/*t0 <- m*n (Obtenemos el resultado)*/
+
+	bne $HI,zero,overflow
 
 	div t0, v0				/* En v0 esta el resultado de mcd */
 
 	mflo v0						/* Devolvemos tambien en v0 */
 
+return:
 	lw ra, O_RA(sp)		/* Restauramos gp,fp y obtenemos la direccion de retorno*/
 	lw gp, O_GP(sp)
 	lw fp, O_FP(sp)
@@ -59,5 +63,9 @@ mcm:
 	addiu sp, sp, SS
 
 	jr ra
+
+overflow:
+	add v0, zero, zero
+	j return
 
 .end mcm
