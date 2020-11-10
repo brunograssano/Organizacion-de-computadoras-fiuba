@@ -290,10 +290,10 @@ espacios
 
 	echo -e "\e[1m PRUEBA 16 \e[0m" - Le enviamos 2 numeros cuyo mcm da overflow y devolvemos distinto de 0
 	echo " "
-	echo "Ejecutamos: ./tp 2 4294967295"
+	echo "Ejecutamos: ./tp 3 4294967295"
 	echo "Luego: echo $ ?"
 	echo " "
-	./tp 2 4294967295
+	./tp 3 4294967295
 	resultadoObtenido=$(echo $?)
 	echo "Ejecutamos y obtenemos:"
   	echo "RESULTADO ESPERADO:"
