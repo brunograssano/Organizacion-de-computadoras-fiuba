@@ -64,7 +64,7 @@ espacios
 	echo
 
 	echo RESULTADO ESPERADO:
-	resultadoEsperado="$(printf "64\n768")"	
+	resultadoEsperado="$(printf "64\n768")"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
 	resultadoObtenido=$(./tp 256 192 )
@@ -114,7 +114,7 @@ espacios
 	echo -e "\e[1m PRUEBA 7 \e[0m" - Se buscan el mcd y mcm de 1111 1294
 	echo
 
-	echo RESULTADO ESPERADO:	
+	echo RESULTADO ESPERADO:
 	resultadoEsperado="$(printf "1\n1437634")"
 	echo $resultadoEsperado
 	echo RESULTADO OBTENIDO:
@@ -204,7 +204,7 @@ espacios
 
 espacios
 
-	echo -e "\e[1m PRUEBA 12 \e[0m" - Le enviamos un numero no valido al tp y devolvemos distinto de 0
+	echo -e "\e[1m PRUEBA 12 \e[0m" - Le enviamos un numero negativo al tp y devolvemos distinto de 0
 	echo " "
 	echo "Ejecutamos: ./tp 8 -15"
 	echo "Luego: echo $ ?"
@@ -225,7 +225,7 @@ espacios
 	fi
 espacios
 
-	echo -e "\e[1m PRUEBA 13 \e[0m" - Le enviamos un numero no valido al tp y devolvemos distinto de 0
+	echo -e "\e[1m PRUEBA 13 \e[0m" - Le enviamos un uno y otro numero al tp  y devolvemos distinto de 0
 	echo " "
 	echo "Ejecutamos: ./tp 8 1"
 	echo "Luego: echo $ ?"
@@ -246,12 +246,12 @@ espacios
 
 espacios
 
-	echo -e "\e[1m PRUEBA 14 \e[0m" - Le enviamos un numero no valido al tp y devolvemos distinto de 0
+	echo -e "\e[1m PRUEBA 14 \e[0m" - Le enviamos un numero cuyo mcm da overflow y devolvemos distinto de 0
 	echo " "
 	echo "Ejecutamos: ./tp 8 4294967295"
 	echo "Luego: echo $ ?"
 	echo " "
-	./tp 8 
+	./tp 8 4294967295
 	resultadoObtenido=$(echo $?)
 	echo "Ejecutamos y obtenemos:"
   	echo "RESULTADO ESPERADO:"
@@ -267,9 +267,9 @@ espacios
 
 espacios
 
-	echo -e "\e[1m PRUEBA 15 \e[0m" - Le enviamos un numero no valido al tp y devolvemos distinto de 0
+	echo -e "\e[1m PRUEBA 15 \e[0m" - Le enviamos un numero fuera del rango del int al tp y devolvemos distinto de 0
 	echo " "
-	echo "Ejecutamos: ./tp 8 4294967300"
+	echo "Ejecutamos: ./tp 2 4294967300"
 	echo "Luego: echo $ ?"
 	echo " "
 	./tp 8 4294967300
@@ -288,7 +288,7 @@ espacios
 
 espacios
 
-	echo -e "\e[1m PRUEBA 16 \e[0m" - Le enviamos 2 numeros cuyo mcm da overflow y devolvemos distinto de 0
+	echo -e "\e[1m PRUEBA 16 \e[0m" - Le enviamos otros 2 numeros cuyo mcm da overflow y devolvemos distinto de 0
 	echo " "
 	echo "Ejecutamos: ./tp 3 4294967295"
 	echo "Luego: echo $ ?"
@@ -296,8 +296,8 @@ espacios
 	./tp 3 4294967295
 	resultadoObtenido=$(echo $?)
 	echo "Ejecutamos y obtenemos:"
-  	echo "RESULTADO ESPERADO:"
-  	echo "Distinto de 0"
+  echo "RESULTADO ESPERADO:"
+  echo "Distinto de 0"
 	echo "RESULTADO OBTENIDO:"
 	printf "$resultadoObtenido\n"
 	if [ "0" != "$resultadoObtenido" ];

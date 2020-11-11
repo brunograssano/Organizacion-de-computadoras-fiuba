@@ -85,19 +85,19 @@ configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],cha
   }
 
   if(optind<cantidadArgumentos){
-    unsigned long numeroCompleto = atol(argumentos[optind]);
+    unsigned long numeroCompleto = (unsigned long)atol(argumentos[optind]);
     if(numeroCompleto>UINT_MAX){
       configuracion.overflow = true;
     }
-      configuracion.primerNumero = atoi(argumentos[optind]);
+      configuracion.primerNumero = (unsigned int)numeroCompleto;
       optind++;
   }
   if(optind<cantidadArgumentos){
-    unsigned long numeroCompleto = atol(argumentos[optind]);
+    unsigned long numeroCompleto = (unsigned long)atol(argumentos[optind]);
     if(numeroCompleto>UINT_MAX){
       configuracion.overflow = true;
     }
-    configuracion.segundoNumero = atoi(argumentos[optind]);
+    configuracion.segundoNumero = (unsigned int)numeroCompleto;
   }
   return configuracion;
 }

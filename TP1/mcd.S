@@ -17,6 +17,7 @@
 .text
 .align 2
 .ent mcd
+.cprestore O_GP
 
 mcd:
 

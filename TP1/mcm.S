@@ -23,6 +23,7 @@
 .text
 .align 2
 .ent mcm
+.cprestore O_GP
 
 mcm:
 	/*Hacemos espacio para el stack*/
@@ -44,12 +45,12 @@ mcm:
 	lw a1, O_A1(sp)
 
 	add t0, zero, zero
-	
+
 	multu a0, a1 			/*$LO <- m * n (se guarda el resultado en $LO)*/
-	
+
 	mfhi t1
 	bne t1, zero, overflow
-	
+
 	mflo t0 					/*t0 <- m*n (Obtenemos el resultado)*/
 
 	div t0, v0				/* En v0 esta el resultado de mcd */
