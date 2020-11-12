@@ -5,6 +5,7 @@
 #include <getopt.h>
 #include <limits.h>
 #include "euclides.h"
+#include <errno.h>
 
 #define DIVISOR 'd'
 #define MULTIPLO 'm'
@@ -15,6 +16,7 @@
 #define MODO_ESCRITURA "w"
 
 const int ERROR = -1, VACIO=0, TERMINO = -1;
+extern int errno;
 
 void mostrarAyuda(){
   printf("Uso: \n");
@@ -85,16 +87,18 @@ configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],cha
   }
 
   if(optind<cantidadArgumentos){
-    unsigned long numeroCompleto = (unsigned long)atol(argumentos[optind]);
-    if(numeroCompleto>UINT_MAX){
+    errno = 0;
+    unsigned long numeroCompleto = strtoul(argumentos[optind], NULL, 10);
+    if(numeroCompleto>UINT_MAX || errno == ERANGE){
       configuracion.overflow = true;
     }
       configuracion.primerNumero = (unsigned int)numeroCompleto;
       optind++;
   }
   if(optind<cantidadArgumentos){
-    unsigned long numeroCompleto = (unsigned long)atol(argumentos[optind]);
-    if(numeroCompleto>UINT_MAX){
+    errno = 0;
+    unsigned long numeroCompleto = strtoul(argumentos[optind], NULL, 10);
+    if(numeroCompleto>UINT_MAX || errno == ERANGE){
       configuracion.overflow = true;
     }
     configuracion.segundoNumero = (unsigned int)numeroCompleto;
