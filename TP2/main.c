@@ -159,7 +159,7 @@ int inicializarCache(configuracion_t configuracion){
   cache.cachesize = configuracion.tamanioCache * KILOBYTE;
   cache.blocksize = configuracion.tamanioBloque;
   cache.ways = configuracion.vias;
-  cache.sets = configuracion.tamanioCache/configuracion.vias;
+  cache.sets = cache.cachesize/(cache.ways*cache.blocksize);
 
   cache.blocks = calloc(cache.sets,sizeof(block_t*));
   if(cache.blocks == NULL){

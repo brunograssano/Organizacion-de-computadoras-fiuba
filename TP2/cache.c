@@ -1,17 +1,9 @@
-
 #include "cache.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
 #define TAMANIO_MEMORIA_PRINCIPAL (64*1024)
-// |tag|index|offset|
-// offset -> log2(tamanio_bloque);
-// index -> log2(cantidad_conjuntos)
-// tag -> 16 - offset - index
-//  Via1    Via2
-//1|TO |   |TO |
-//2|TO |   |TO |
 
 typedef struct main_memory{
   char data[TAMANIO_MEMORIA_PRINCIPAL];
@@ -24,33 +16,39 @@ main_memory_t main_memory;
 void update_lru(unsigned int index,unsigned int way){
   unsigned int lru_block = cache.blocks[index][way].lru;
   for(int i = 0; i < cache.ways; i++){
-    if(i!=way && (cache.blocks[index][i].lru < lru_block)){
+    if(i!=way){
         cache.blocks[index][i].lru++;
     }
   }
-  cache.blocks[index][way].lru = 1;
+  cache.blocks[index][way].lru = 0;
 }
 
 unsigned short getTag(unsigned int address){
-  unsigned short shift_size = (int)(16 - log(cache.blocksize)/log(2) - log(cache.sets)/log(2));
+  unsigned short offset_bits = ceil(log(cache.blocksize)/log(2));
+  unsigned short index_bits = ceil(log(cache.sets)/log(2));
+  unsigned short shift_size  = (offset_bits + index_bits);
   return address >> shift_size;
 }
 
 unsigned short getIndex(unsigned int address){
-  unsigned short shift_size = (int)(16 - log(cache.blocksize)/log(2) - log(cache.sets)/log(2));
-  unsigned short index = address << shift_size;
-  index = index >>  (int)(16 - log(cache.sets)/log(2));
+  unsigned short offset_bits = ceil(log(cache.blocksize)/log(2));
+  unsigned short index_bits = ceil(log(cache.sets)/log(2));
+  unsigned short tag_bits = (16 - offset_bits - index_bits);
+  unsigned short index = address << tag_bits;
+  index = index >> (offset_bits + tag_bits) ;
   return index;
 }
 
 unsigned short getOffset(unsigned int address){
-  unsigned short offset = address << (int)(16 - log(cache.blocksize)/log(2));
-  offset = offset >> (int)(16 - log(cache.blocksize)/log(2));
+  unsigned short offset_bits = ceil(log(cache.blocksize)/log(2));
+  unsigned short offset = address << (16 - offset_bits);
+  offset = offset >> (16 - offset_bits);
   return offset;
 }
 
 unsigned short getAddress(unsigned int way,unsigned int setnum){
-  unsigned short shifted_tag = cache.blocks[setnum][way].tag << (int)(log(cache.sets)/log(2));
+  unsigned short index_bits = ceil(log(cache.sets)/log(2));
+  unsigned short shifted_tag = cache.blocks[setnum][way].tag << index_bits;
   return (shifted_tag | setnum) * cache.blocksize;
 }
 
@@ -132,7 +130,7 @@ void read_block(unsigned int blocknum){
   }
   cache.blocks[set][way].dirty = false;
   cache.blocks[set][way].valid = true;
-  cache.blocks[set][way].lru = 1;
+  cache.blocks[set][way].lru = 0;
 }
 
 /* La función write block(int way, int setnum) debe escribir en memoria
@@ -168,7 +166,7 @@ unsigned char read_byte(unsigned int address){
   way = find_lru(index);
   read_block(address/cache.blocksize);
   cache.blocks[index][way].tag = tag;
-
+  update_lru(index,way);
   return cache.blocks[index][way].data[offset];
 }
 
@@ -192,7 +190,7 @@ void write_byte(unsigned int address,unsigned char value){
   way = find_lru(index);
   read_block(address/cache.blocksize);
   cache.blocks[index][way].tag = tag;
-
+  update_lru(index,way);
   cache.blocks[index][way].data[offset] = value;
 }
 
