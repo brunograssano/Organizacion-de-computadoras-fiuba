@@ -21,6 +21,7 @@
 #define MODO_LECTURA "r"
 #define MODO_ESCRITURA "w"
 
+#define KILOBYTE 1024
 const int ERROR = -1, VACIO=0, TERMINO = -1;
 
 typedef struct configuracion{
@@ -72,8 +73,7 @@ configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],cha
   };
   configuracion_t configuracion;
   memset(&configuracion,0,sizeof(configuracion_t));
-  int argumento;
-  int indiceOpcion = 0;
+  int argumento, indiceOpcion = 0;
   bool pidioAyuda = false, pidioVersion = false;
 
   while((argumento = getopt_long(cantidadArgumentos, argumentos, "w:c:ho:vb:",opcionesLargas, &indiceOpcion))!=TERMINO){
@@ -120,66 +120,43 @@ configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],cha
 }
 
 int parsearArchivo(FILE* fileInput,FILE* fileOutput){
-  init();   //<-------------------------MENCIONAR EL SUPUESTO
   const char delimitadorEspacio[2] = " ";
   const char delimitadorComa[3] = ", ";
   char buffer[MAX_NOMBRE_ARCHIVO] = "";
+  unsigned int direccionALeer = 0,caracter = 0;
+  init();   //<-------------------------MENCIONAR EL SUPUESTO
   int leidos = fscanf(fileInput,"%[^\n]\n",buffer);
   while(0<leidos){
     if(strcmp(buffer,"init")==0){
       init();
     }
-    else if(buffer[0] == READ_BYTE){
+    else if(buffer[0] == READ_BYTE || buffer[0] == WRITE_BYTE){
       char* instruccion = strtok(buffer,delimitadorEspacio);
       char* primerNumero = strtok(NULL,delimitadorComa);
-
-      char valor = read_byte(atoi(primerNumero));
-      fprintf(fileOutput, "El valor obtenido fue %c\n", valor);
-    }
-    else if(buffer[0] == WRITE_BYTE){
-      char* instruccion = strtok(buffer,delimitadorEspacio);
-      char* primerNumero = strtok(NULL,delimitadorComa);
-      char* valor = strtok(NULL,delimitadorComa);
-      short caracter = atoi(valor);
-      write_byte(atoi(primerNumero),caracter);
+      direccionALeer = atoi(primerNumero);
+      if(buffer[0] == READ_BYTE){
+        unsigned char valor = read_byte(direccionALeer);
+        fprintf(fileOutput, "El valor obtenido fue: %c (%d)\n", valor,valor);
+      }
+      else{
+        char* valor = strtok(NULL,delimitadorComa);
+        caracter = atoi(valor);
+        write_byte(direccionALeer,caracter);
+      }
+      fprintf(fileOutput, "El resultado de la operacion fue: %s\n", cache.was_hit?"HIT":"MISS");
     }
     else if(strcmp(buffer,"MR")==0){
       int missRate = get_miss_rate();
-      fprintf(fileOutput, "El miss rate es de: %i\n", missRate);
+      fprintf(fileOutput, "El miss rate es de: %i %% \n", missRate);
     }
-    fprintf(fileOutput, "El resultado de la operacion fue: %s\n", cache.was_hit?"HIT":"MISS");
-
+    strcpy(buffer,"");
     leidos = fscanf(fileInput,"%[^\n]\n",buffer);
   }
   return 0;
 }
 
-
-int main(int cantidadArgumentos, char* argumentos[]){
-  int estado = 0;
-  char archivoInput[MAX_NOMBRE_ARCHIVO] = "";
-  if(cantidadArgumentos == 1){
-    fprintf(stderr, "No se enviaron argumentos. Puede ver ayuda mandando -h\n");
-    return ERROR;
-  }
-  configuracion_t configuracion = manejarParametros(cantidadArgumentos,argumentos,archivoInput);
-  if(configuracion.pidioOtraOpcion){
-    return estado;
-  }
-
-  if(strlen(archivoInput)==VACIO){
-    fprintf(stderr, "No se envio el archivo de entrada, se termina el programa. Puede ver ayuda mandando -h\n");
-    return ERROR;
-  }
-
-
-  FILE* fileInput = fopen(archivoInput,MODO_LECTURA);
-  if(fileInput==NULL){
-      fprintf(stderr, "No se pudo abrir el archivo de entrada.\n");
-      return ERROR;
-  }
-
-  cache.cachesize = configuracion.tamanioCache;
+int inicializarCache(configuracion_t configuracion){
+  cache.cachesize = configuracion.tamanioCache * KILOBYTE;
   cache.blocksize = configuracion.tamanioBloque;
   cache.ways = configuracion.vias;
   cache.sets = configuracion.tamanioCache/configuracion.vias;
@@ -206,14 +183,10 @@ int main(int cantidadArgumentos, char* argumentos[]){
       }
     }
   }
+  return 0;
+}
 
-  estado = parsearArchivo(fileInput,configuracion.salida);
-
-  fclose(fileInput);
-  if(configuracion.salida!=stdout){
-    fclose(configuracion.salida);
-  }
-
+void destruirCache(){
   for(int i=0;i<cache.sets;i++){
     for(int j=0;j<cache.ways;j++){
       free(cache.blocks[i][j].data);
@@ -224,7 +197,47 @@ int main(int cantidadArgumentos, char* argumentos[]){
     free(cache.blocks[i]);
   }
   free(cache.blocks);
+}
 
+
+int main(int cantidadArgumentos, char* argumentos[]){
+  int estado = 0;
+  char archivoInput[MAX_NOMBRE_ARCHIVO] = "";
+  if(cantidadArgumentos == 1){
+    fprintf(stderr, "No se enviaron argumentos. Puede ver ayuda mandando -h\n");
+    return ERROR;
+  }
+  configuracion_t configuracion = manejarParametros(cantidadArgumentos,argumentos,archivoInput);
+  if(configuracion.pidioOtraOpcion){
+    return estado;
+  }
+
+  if(strlen(archivoInput)==VACIO){
+    fprintf(stderr, "No se envio el archivo de entrada, se termina el programa. Puede ver ayuda mandando -h\n");
+    return ERROR;
+  }
+
+  FILE* fileInput = fopen(archivoInput,MODO_LECTURA);
+  if(fileInput==NULL){
+      fprintf(stderr, "No se pudo abrir el archivo de entrada.\n");
+      return ERROR;
+  }
+
+  //REVISAR QUE SEAN VALORES VALIDOS
+
+  estado = inicializarCache(configuracion);
+  if(estado == ERROR){
+    return estado;
+  }
+
+  estado = parsearArchivo(fileInput,configuracion.salida);
+
+  destruirCache();
+
+  fclose(fileInput);
+  if(configuracion.salida!=stdout){
+    fclose(configuracion.salida);
+  }
 
   return estado;
 }

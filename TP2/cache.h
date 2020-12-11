@@ -26,19 +26,19 @@ cache_t cache;
 
 void init();
 
-unsigned int find_set(int address);
+unsigned int find_set(unsigned int address);
 
-unsigned int find_lru(int setnum);
+unsigned int find_lru(unsigned int setnum);
 
-unsigned int is_dirty(int way,int setnum);
+unsigned int is_dirty(unsigned int way,unsigned int setnum);
 
-void read_block(int blocknum);
+void read_block(unsigned int blocknum);
 
-void write_block(int way, int setnum);
+void write_block(unsigned int way,unsigned int setnum);
 
-char read_byte(int address);
+unsigned char read_byte(unsigned int address);
 
-void write_byte(int address, char value);
+void write_byte(unsigned int address,unsigned char value);
 
 int get_miss_rate();
 
