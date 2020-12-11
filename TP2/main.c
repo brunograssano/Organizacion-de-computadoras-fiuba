@@ -13,7 +13,23 @@
 #define CACHE_SIZE 'c'
 #define BLOCK_SIZE 'b'
 
+#define READ_BYTE 'R'
+#define WRITE_BYTE 'W'
+
+#define MAX_NOMBRE_ARCHIVO 256
+
+#define MODO_LECTURA "r"
+#define MODO_ESCRITURA "w"
+
 const int ERROR = -1, VACIO=0, TERMINO = -1;
+
+typedef struct configuracion{
+  bool pidioOtraOpcion;
+  int vias;
+  int tamanioCache;
+  int tamanioBloque;
+  FILE* salida;
+}configuracion_t;
 
 void mostrarAyuda(){
   printf("Uso: \n");
@@ -24,41 +40,55 @@ void mostrarAyuda(){
   printf(" -v, --version    Imprime la version y termina el programa.\n");
   printf(" -h, --help       Imprime esta informacion.\n");
   printf(" -o, --output     Indica que le sigue la direccion al archivo de salida.\n");
-  //...
-
+  printf(" -w, --ways       Cantidad de vias.\n");
+  printf(" -c, --cachesize  Tamanio del cache en kilobytes\n");
+  printf(" -b, --blocksize  Tamanio del bloque en bytes\n");
   printf("Ejemplos: \n");
-  //...
+  printf(" tp2 -w 4 -c 8 -b 16 prueba1.mem \n");
 }
 
 void mostrarVersion(){
 	 printf("Version 1.0.0\n");
 }
 
-/*
-configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],char archivoOutput[MAX_NOMBRE_ARCHIVO]){
+void determinarSalida(configuracion_t* configuracion,char* argumentos[]){
+  configuracion->salida = fopen(argumentos[optind],MODO_ESCRITURA);
+  if(configuracion->salida == NULL){
+    fprintf(stderr, "No se pudo abrir el archivo enviado para salida, el resultado se mostrara por stdout\n");
+    configuracion->salida = stdout;
+  }
+}
+
+
+configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],char archivoInput[MAX_NOMBRE_ARCHIVO]){
   static struct option opcionesLargas[] = {
-     {"multiple", no_argument, 0, 'm'},
-     {"divisor", no_argument, 0, 'd'},
+     {"ways", required_argument, 0, 'w'},
+     {"cachesize", required_argument, 0, 'c'},
      {"help", no_argument, 0, 'h'},
      {"output", required_argument, 0, 'o'},
      {"version", no_argument, 0, 'v'},
+     {"blocksize", required_argument, 0, 'b'},
      {0, 0, 0, 0}
   };
-  configuracion_t configuracion = {false,false,false,false,0,0};
+  configuracion_t configuracion;
+  memset(&configuracion,0,sizeof(configuracion_t));
   int argumento;
   int indiceOpcion = 0;
   bool pidioAyuda = false, pidioVersion = false;
 
-  while((argumento = getopt_long(cantidadArgumentos, argumentos, "o:hvdm",opcionesLargas, &indiceOpcion))!=TERMINO){
+  while((argumento = getopt_long(cantidadArgumentos, argumentos, "w:c:ho:vb:",opcionesLargas, &indiceOpcion))!=TERMINO){
       switch (argumento) {
-          case DIVISOR:
-              configuracion.soloDivisor = true;
+          case CANTIDAD_VIAS:
+              configuracion.vias = atoi(optarg);
               break;
-          case MULTIPLO:
-              configuracion.soloMultiplo = true;
+          case CACHE_SIZE:
+              configuracion.tamanioCache = atoi(optarg);
+              break;
+          case BLOCK_SIZE:
+              configuracion.tamanioBloque = atoi(optarg);
               break;
           case OUTPUT:
-              strcpy(archivoOutput,optarg);
+              determinarSalida(&configuracion,argumentos);
               break;
           case VERSION:
               if(!pidioVersion){
@@ -80,62 +110,121 @@ configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],cha
   }
 
   if(optind<cantidadArgumentos){
-    errno = 0;
-    unsigned long numeroCompleto = strtoul(argumentos[optind], NULL, 10);
-    if(numeroCompleto>UINT_MAX || errno == ERANGE){
-      configuracion.overflow = true;
-    }
-      configuracion.primerNumero = (unsigned int)numeroCompleto;
-      optind++;
+    strcpy(archivoInput,argumentos[optind]);
   }
-  if(optind<cantidadArgumentos){
-    errno = 0;
-    unsigned long numeroCompleto = strtoul(argumentos[optind], NULL, 10);
-    if(numeroCompleto>UINT_MAX || errno == ERANGE){
-      configuracion.overflow = true;
-    }
-    configuracion.segundoNumero = (unsigned int)numeroCompleto;
+
+  if(configuracion.salida == NULL){
+    configuracion.salida = stdout;
   }
   return configuracion;
 }
 
+int parsearArchivo(FILE* fileInput,FILE* fileOutput){
+  init();   //<-------------------------MENCIONAR EL SUPUESTO
+  const char delimitadorEspacio[2] = " ";
+  const char delimitadorComa[3] = ", ";
+  char buffer[MAX_NOMBRE_ARCHIVO] = "";
+  int leidos = fscanf(fileInput,"%[^\n]\n",buffer);
+  while(0<leidos){
+    if(strcmp(buffer,"init")==0){
+      init();
+    }
+    else if(buffer[0] == READ_BYTE){
+      char* instruccion = strtok(buffer,delimitadorEspacio);
+      char* primerNumero = strtok(NULL,delimitadorComa);
+
+      char valor = read_byte(atoi(primerNumero));
+      fprintf(fileOutput, "El valor obtenido fue %c\n", valor);
+    }
+    else if(buffer[0] == WRITE_BYTE){
+      char* instruccion = strtok(buffer,delimitadorEspacio);
+      char* primerNumero = strtok(NULL,delimitadorComa);
+      char* valor = strtok(NULL,delimitadorComa);
+      short caracter = atoi(valor);
+      write_byte(atoi(primerNumero),caracter);
+    }
+    else if(strcmp(buffer,"MR")==0){
+      int missRate = get_miss_rate();
+      fprintf(fileOutput, "El miss rate es de: %i\n", missRate);
+    }
+    fprintf(fileOutput, "El resultado de la operacion fue: %s\n", cache.was_hit?"HIT":"MISS");
+
+    leidos = fscanf(fileInput,"%[^\n]\n",buffer);
+  }
+  return 0;
+}
+
+
 int main(int cantidadArgumentos, char* argumentos[]){
   int estado = 0;
-  char archivoOutput[MAX_NOMBRE_ARCHIVO] = "";
+  char archivoInput[MAX_NOMBRE_ARCHIVO] = "";
   if(cantidadArgumentos == 1){
     fprintf(stderr, "No se enviaron argumentos. Puede ver ayuda mandando -h\n");
     return ERROR;
   }
-  configuracion_t configuracion = manejarParametros(cantidadArgumentos,argumentos,archivoOutput);
+  configuracion_t configuracion = manejarParametros(cantidadArgumentos,argumentos,archivoInput);
+  if(configuracion.pidioOtraOpcion){
+    return estado;
+  }
 
-  if(configuracion.overflow){
-      fprintf(stderr, "Los numeros enviados no pueden ser mayores al limite del int. Puede ver ayuda mandando -h\n");
+  if(strlen(archivoInput)==VACIO){
+    fprintf(stderr, "No se envio el archivo de entrada, se termina el programa. Puede ver ayuda mandando -h\n");
+    return ERROR;
+  }
+
+
+  FILE* fileInput = fopen(archivoInput,MODO_LECTURA);
+  if(fileInput==NULL){
+      fprintf(stderr, "No se pudo abrir el archivo de entrada.\n");
       return ERROR;
   }
 
-  if(!configuracion.pidioOtraOpcion && (configuracion.primerNumero<2 || configuracion.segundoNumero<2)){
-      fprintf(stderr, "Los numeros tienen que ser mayor o igual a 2. Puede ver ayuda mandando -h\n");
+  cache.cachesize = configuracion.tamanioCache;
+  cache.blocksize = configuracion.tamanioBloque;
+  cache.ways = configuracion.vias;
+  cache.sets = configuracion.tamanioCache/configuracion.vias;
+
+  cache.blocks = calloc(cache.sets,sizeof(block_t*));
+  if(cache.blocks == NULL){
+    fprintf(stderr, "Ocurrio un error al alocar la memoria.\n");
+    return ERROR;
+  }
+  for(int i=0;i<cache.sets;i++){
+    cache.blocks[i] = calloc(cache.ways,sizeof(block_t));
+    if(cache.blocks[i] == NULL){
+      fprintf(stderr, "Ocurrio un error al alocar la memoria.\n");
       return ERROR;
+    }
   }
 
-  if(!configuracion.pidioOtraOpcion && configuracion.soloDivisor && configuracion.soloMultiplo){
-      fprintf(stderr, "Uso mal las opciones, no es valido mandar -d y -m juntos. Puede ver ayuda mandando -h\n");
-      return ERROR;
-  }
-
-  if(strlen(archivoOutput)>VACIO && archivoOutput[0]!='-' && !configuracion.pidioOtraOpcion){
-      FILE* fileOutput = fopen(archivoOutput,MODO_ESCRITURA);
-      if(fileOutput==NULL){
-          fprintf(stderr, "No se pudo abrir el archivo enviado.\n");
-          return ERROR;
+  for(int i=0;i<cache.sets;i++){
+    for(int j=0;j<cache.ways;j++){
+      cache.blocks[i][j].data = calloc(cache.blocksize,sizeof(char));
+      if(cache.blocks[i][j].data == NULL){
+        fprintf(stderr, "Ocurrio un error al alocar la memoria.\n");
+        return ERROR;
       }
-      estado = buscarNumeros(configuracion,fileOutput);
-      fclose(fileOutput);
+    }
   }
-  else if(!configuracion.pidioOtraOpcion){
-      estado = buscarNumeros(configuracion,stdout);
+
+  estado = parsearArchivo(fileInput,configuracion.salida);
+
+  fclose(fileInput);
+  if(configuracion.salida!=stdout){
+    fclose(configuracion.salida);
   }
+
+  for(int i=0;i<cache.sets;i++){
+    for(int j=0;j<cache.ways;j++){
+      free(cache.blocks[i][j].data);
+    }
+  }
+
+  for(int i=0;i<cache.sets;i++){
+    free(cache.blocks[i]);
+  }
+  free(cache.blocks);
+
 
   return estado;
 }
-*/

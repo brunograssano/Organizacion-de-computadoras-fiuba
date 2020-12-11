@@ -1,6 +1,29 @@
 #ifndef __CACHE_H__
 #define __CACHE_H__
 
+#include <stdbool.h>
+
+typedef struct block{
+  unsigned int lru;
+  bool dirty;
+  bool valid;
+  unsigned int tag;
+  char* data;
+}block_t;
+
+typedef struct cache{
+  bool was_hit;
+  unsigned int misses;
+  unsigned int hits;
+  unsigned int cachesize;
+  unsigned int blocksize;
+  unsigned int ways;
+  unsigned int sets;
+  block_t** blocks;
+}cache_t;
+
+cache_t cache;
+
 void init();
 
 unsigned int find_set(int address);

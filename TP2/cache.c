@@ -1,9 +1,10 @@
 
 #include "cache.h"
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
-const int TAMANIO_MEMORIA_PRINCIPAL = (64*1024);
+#define TAMANIO_MEMORIA_PRINCIPAL (64*1024)
 // |tag|index|offset|
 // offset -> log2(tamanio_bloque);
 // index -> log2(cantidad_conjuntos)
@@ -12,43 +13,38 @@ const int TAMANIO_MEMORIA_PRINCIPAL = (64*1024);
 //1|TO |   |TO |
 //2|TO |   |TO |
 
-typedef struct memoria_principal{
-  char datos[TAMANIO_MEMORIA_PRINCIPAL];
-}memoria_principal_t
+typedef struct main_memory{
+  char data[TAMANIO_MEMORIA_PRINCIPAL];
+}main_memory_t;
 
-typedef struct bloque{
-  unsigned int lru;
-  bool dirty;
-  bool valid;
-  unsigned int tag;
-  char datos[tamanio_bloque];
-}bloque_t;
+main_memory_t main_memory;
 
-typedef struct cache{
-  unsigned int misses;
-  unsigned int hits;
-  unsigned int tamanio_cache;
-  unsigned int tamanio_bloque;
-  unsigned int vias;
-  unsigned int cantidad_conjuntos;
-  bloque_t bloques[cantidad_conjuntos][vias]
-}cache_t;
-
-
-cache_t cache;
-memoria_principal_t memoria_principal;
+void update_lru(int index,int way){
+  unsigned int lru_block = cache.blocks[index][way].lru;
+  for(int i = 0; i < cache.ways; i++){
+    if(i!=way && (cache.blocks[index][i].lru < lru_block)){
+        cache.blocks[index][i].lru++;
+    }
+  }
+  cache.blocks[index][way].lru = 1;
+}
 
 void init(){
   cache.misses = 0;
   cache.hits = 0;
-  memset(cache.bloques,0,sizeof(cache.bloques));
-  memset(&memoria_principal,0,sizeof(memoria_principal_t));
+  memset(&main_memory,0,sizeof(main_memory));
+
+  for(int i=0;i<cache.sets;i++){
+    for(int j=0;j<cache.ways;j++){
+      cache.blocks[i][j].valid = false;
+    }
+  }
 }
 
 /* La función find set(int address) debe devolver el conjunto de caché al que mapea la dirección address.
  */
 unsigned int find_set(int address){
-  return (address / cache.tamanio_bloque) % cache.cantidad_conjuntos; // La division seria como >>
+  return (address / cache.blocksize) % cache.sets; // La division seria como >>
 }
 
 /* La función find lru(int setnum) debe devolver el bloque menos recientemente usado dentro de un conjunto (o alguno de ellos si hay más
@@ -56,22 +52,22 @@ unsigned int find_set(int address){
  * bloques del conjunto.
  */
 unsigned int find_lru(int setnum){
-  int lru_mas_alto = 0;
-  unsigned int bloque_lru_en_via = 0;
-  for(int i = 0;i<cache.vias; i++){
-      if(cache.bloques[setnum][i].lru>lru_mas_alto){
-          lru_mas_alto = cache.bloques[setnum][i].lru;
-          bloque_lru_en_via = i;
+  int highest_lru = 0;
+  unsigned int lru_block = 0;
+  for(int i = 0;i<cache.ways; i++){
+      if(cache.blocks[setnum][i].lru>highest_lru){
+          highest_lru = cache.blocks[setnum][i].lru;
+          lru_block = i;
       }
   }
 
-  return bloque_lru_en_via;
+  return lru_block;
 }
 
 /* La función is dirty(int way, int setnum) debe devolver el estado del bit D del bloque correspondiente.
  */
 unsigned int is_dirty(int way,int setnum){
-  return cache.bloques[setnum][way].dirty;
+  return (unsigned int)cache.blocks[setnum][way].dirty;
 }
 
 /* La función read block(int blocknum) debe leer el bloque blocknum
@@ -79,18 +75,18 @@ unsigned int is_dirty(int way,int setnum){
  * caché.
  */
 void read_block(int blocknum){
-  int comienzo_direccion = blocknum*cache.tamanio_bloque;
-  int conjunto = find_set(comienzo_direccion);
-  int via = find_lru(conjunto);
-  if(is_dirty(via,conjunto)){
-    write_block(via,conjunto);
+  int first_address = blocknum*cache.blocksize;
+  int set = find_set(first_address);
+  int way = find_lru(set);
+  if(is_dirty(way,set)){
+    write_block(way,set);
   }
-  for(int i = 0; i<cache.tamanio_bloque ;i++){
-    cache.bloques[conjunto][via].datos[i] = memoria_principal.datos[comienzo_direccion + i];
+  for(int i = 0; i<cache.blocksize ;i++){
+    cache.blocks[set][way].data[i] = main_memory.data[first_address + i];
   }
-  cache.bloques[conjunto][via].dirty = false;
-  cache.bloques[conjunto][via].valid = true;
-  cache.bloques[conjunto][via].lru = 1;
+  cache.blocks[set][way].dirty = false;
+  cache.blocks[set][way].valid = true;
+  cache.blocks[set][way].lru = 1;
 }
 
 /* La función write block(int way, int setnum) debe escribir en memoria
@@ -101,13 +97,10 @@ void write_block(int way, int setnum){
     return;
   }
 
-  // (tag|setnum(index) ->numeroBloqueEnMem) * tamanio_bloque
+  int address =((cache.blocks[setnum][way].tag << (int)(log(cache.sets)/log(2))) | setnum) * cache.blocksize;
 
-
-  int direccion =((cache.bloques[setnum][way].tag << (log(cantidad_conjuntos)/log(2))) | setnum) * cache.tamanio_bloque;
-
-  for(int i=0; i<cache.tamanio_bloque; i++){
-    memoria_principal.datos[direccion+i] = cache.bloques[setnum][way].datos[i];
+  for(int i=0; i<cache.blocksize; i++){
+    main_memory.data[address+i] = cache.blocks[setnum][way].data[i];
   }
 
 }
@@ -118,36 +111,36 @@ void write_block(int way, int setnum){
 char read_byte(int address){ //address tiene tag/setnum/offset -> buscamos en cache -> hit/miss -> buscar en memoria_principal
                              // si esta en memoria principal -> llamamos a read_block JOAQUIN GIL
 
-  int tag = address >> (16 - log(cache.tamanio_bloque)/log(2) - log(cache.cantidad_conjuntos)/log(2));
+  int tag = address >> (int)(16 - log(cache.blocksize)/log(2) - log(cache.sets)/log(2));
 
-  int index = address << (16 - log(cache.tamanio_bloque)/log(2) - log(cache.cantidad_conjuntos)/log(2));
-  index = index >>  (16 - log(cache.cantidad_conjuntos)/log(2));
+  int index = address << (int)(16 - log(cache.blocksize)/log(2) - log(cache.sets)/log(2));
+  index = index >>  (int)(16 - log(cache.sets)/log(2));
 
-  int offset = address << (16 - log(cache.tamanio_bloque)/log(2));
-  offset = offset >> (16 - log(cache.tamanio_bloque)/log(2));
+  int offset = address << (int)(16 - log(cache.blocksize)/log(2));
+  offset = offset >> (int)(16 - log(cache.blocksize)/log(2));
 
-  int via =0;
-  bool encontre_el_bloque = false;
-  while(via < cache.vias && !encontre_el_bloque){
-    if(cache.bloques[index][via].tag == tag && cache.bloques[index][via].valid){
-      encontre_el_bloque = true;
+  int way =0;
+  cache.was_hit = false;
+  while(way < cache.ways && !cache.was_hit){
+    if(cache.blocks[index][way].tag == tag && cache.blocks[index][way].valid){
+      cache.was_hit = true;
       cache.hits++;
     }
     else{
-      via++;
+      way++;
     }
   }
 
-  if(encontre_el_bloque){
-    actualizar_lru(index,via);
-    return cache.bloques[index][via].datos[offset];
+  if(cache.was_hit){
+    update_lru(index,way);
+    return cache.blocks[index][way].data[offset];
   }
 
   cache.misses++;
-  via = find_lru(index);
-  read_block(address/cache.tamanio_bloque);
+  way = find_lru(index);
+  read_block(address/cache.blocksize);
 
-  return cache.bloques[index][via].datos[offset];
+  return cache.blocks[index][way].data[offset];
 }
 
 /* La función write byte(int address, char value) debe escribir el
@@ -155,37 +148,37 @@ char read_byte(int address){ //address tiene tag/setnum/offset -> buscamos en ca
  * address
  */
 void write_byte(int address, char value){
-  int tag = address >> (16 - log(cache.tamanio_bloque)/log(2) - log(cache.cantidad_conjuntos)/log(2));
+  int tag = address >> (int)(16 - log(cache.blocksize)/log(2) - log(cache.sets)/log(2));
 
-  int index = address << (16 - log(cache.tamanio_bloque)/log(2) - log(cache.cantidad_conjuntos)/log(2));
-  index = index >>  (16 - log(cache.cantidad_conjuntos)/log(2));
+  int index = address << (int)(16 - log(cache.blocksize)/log(2) - log(cache.sets)/log(2));
+  index = index >>  (int)(16 - log(cache.sets)/log(2));
 
-  int offset = address << (16 - log(cache.tamanio_bloque)/log(2));
-  offset = offset >> (16 - log(cache.tamanio_bloque)/log(2));
+  int offset = address << (int)(16 - log(cache.blocksize)/log(2));
+  offset = offset >> (int)(16 - log(cache.blocksize)/log(2));
 
-  int via =0;
-  bool encontre_el_bloque = false;
-  while(via < cache.vias && !encontre_el_bloque){
-    if(cache.bloques[index][via].tag == tag && cache.bloques[index][via].valid){
-      encontre_el_bloque = true;
+  int way = 0;
+  cache.was_hit = false;
+  while(way < cache.ways && !cache.was_hit){
+    if(cache.blocks[index][way].tag == tag && cache.blocks[index][way].valid){
+      cache.was_hit = true;
       cache.hits++;
     }
     else{
-      via++;
+      way++;
     }
   }
 
-  if(encontre_el_bloque){
-    actualizar_lru(index,via);
-    cache.bloques[index][via].datos[offset] = value;
+  if(cache.was_hit){
+    update_lru(index,way);
+    cache.blocks[index][way].data[offset] = value;
     return;
   }
 
   cache.misses++;
-  via = find_lru(index);
-  read_block(address/cache.tamanio_bloque);
+  way = find_lru(index);
+  read_block(address/cache.blocksize);
 
-  cache.bloques[index][via].datos[offset] = value;
+  cache.blocks[index][way].data[offset] = value;
 }
 
 /* La función get miss rate() debe devolver el porcentaje de misses desde que se inicializó el cache.
@@ -196,16 +189,4 @@ int get_miss_rate(){
     return 0;
   }
   return (cache.misses*100)/(total);
-}
-
-
-
-void actualizar_lru(int index,int via){
-  unsigned int lru_bloque = cache.bloques[index][via].lru;
-  for(int i = 0; i < cache.vias; i++){
-    if(i!=via && (cache.bloques[index][i].lru < lru_bloque)){
-        cache.bloques[index][i].lru++;
-    }
-  }
-  cache.bloques[index][via].lru = 1;
 }
