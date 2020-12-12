@@ -8,7 +8,7 @@ typedef struct block{
   bool dirty;
   bool valid;
   unsigned int tag;
-  char* data;
+  unsigned char* data;
 }block_t;
 
 typedef struct cache{

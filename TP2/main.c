@@ -124,10 +124,10 @@ int parsearArchivo(FILE* fileInput,FILE* fileOutput){
   const char delimitadorComa[3] = ", ";
   char buffer[MAX_NOMBRE_ARCHIVO] = "";
   unsigned int direccionALeer = 0,caracter = 0;
-  init();   //<-------------------------MENCIONAR EL SUPUESTO
-  int leidos = fscanf(fileInput,"%[^\n]\n",buffer);
+  init();
+  int leidos = fscanf(fileInput,"%[^\n]\r\n",buffer);
   while(0<leidos){
-    if(strcmp(buffer,"init")==0){
+    if(strcmp(buffer,"init")==0 || strcmp(buffer,"init\r")==0){
       init();
     }
     else if(buffer[0] == READ_BYTE || buffer[0] == WRITE_BYTE){
@@ -145,7 +145,7 @@ int parsearArchivo(FILE* fileInput,FILE* fileOutput){
       }
       fprintf(fileOutput, "El resultado de la operacion fue: %s\n", cache.was_hit?"HIT":"MISS");
     }
-    else if(strcmp(buffer,"MR")==0){
+    else if(strcmp(buffer,"MR")==0 || strcmp(buffer,"MR\r")==0){
       int missRate = get_miss_rate();
       fprintf(fileOutput, "El miss rate es de: %i %% \n", missRate);
     }

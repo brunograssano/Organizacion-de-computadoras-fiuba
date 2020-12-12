@@ -4,9 +4,10 @@
 #include <math.h>
 
 #define TAMANIO_MEMORIA_PRINCIPAL (64*1024)
+#define BITS_DIRECCION 16
 
 typedef struct main_memory{
-  char data[TAMANIO_MEMORIA_PRINCIPAL];
+  unsigned char data[TAMANIO_MEMORIA_PRINCIPAL];
 }main_memory_t;
 
 main_memory_t main_memory;
@@ -14,7 +15,6 @@ main_memory_t main_memory;
 /////------------------------------AUX------------------------------/////
 
 void update_lru(unsigned int index,unsigned int way){
-  unsigned int lru_block = cache.blocks[index][way].lru;
   for(int i = 0; i < cache.ways; i++){
     if(i!=way){
         cache.blocks[index][i].lru++;
@@ -30,19 +30,10 @@ unsigned short getTag(unsigned int address){
   return address >> shift_size;
 }
 
-unsigned short getIndex(unsigned int address){
-  unsigned short offset_bits = ceil(log(cache.blocksize)/log(2));
-  unsigned short index_bits = ceil(log(cache.sets)/log(2));
-  unsigned short tag_bits = (16 - offset_bits - index_bits);
-  unsigned short index = address << tag_bits;
-  index = index >> (offset_bits + tag_bits) ;
-  return index;
-}
-
 unsigned short getOffset(unsigned int address){
   unsigned short offset_bits = ceil(log(cache.blocksize)/log(2));
-  unsigned short offset = address << (16 - offset_bits);
-  offset = offset >> (16 - offset_bits);
+  unsigned short offset = address << (BITS_DIRECCION - offset_bits);
+  offset = offset >> (BITS_DIRECCION - offset_bits);
   return offset;
 }
 
@@ -84,7 +75,12 @@ void init(){
 /* La función find set(int address) debe devolver el conjunto de caché al que mapea la dirección address.
  */
 unsigned int find_set(unsigned int address){
-  return (address / cache.blocksize) % cache.sets; // La division seria como >>
+  unsigned short offset_bits = ceil(log(cache.blocksize)/log(2));
+  unsigned short index_bits = ceil(log(cache.sets)/log(2));
+  unsigned short tag_bits = (BITS_DIRECCION - offset_bits - index_bits);
+  unsigned short index = address << tag_bits;
+  index = index >> (offset_bits + tag_bits) ;
+  return index;
 }
 
 /* La función find lru(int setnum) debe devolver el bloque menos recientemente usado dentro de un conjunto (o alguno de ellos si hay más
@@ -125,7 +121,7 @@ void read_block(unsigned int blocknum){
   if(is_dirty(way,set)){
     write_block(way,set);
   }
-  for(int i = 0; i<cache.blocksize ;i++){
+  for(int i = 0; i<cache.blocksize; i++){
     cache.blocks[set][way].data[i] = main_memory.data[first_address + i];
   }
   cache.blocks[set][way].dirty = false;
@@ -153,7 +149,7 @@ void write_block(unsigned int way,unsigned int setnum){
  */
 unsigned char read_byte(unsigned int address){
   unsigned short tag = getTag(address);
-  unsigned short index = getIndex(address);
+  unsigned short index = find_set(address);
   unsigned short offset = getOffset(address);
   unsigned int way = search_in_cache(index,tag);
 
@@ -176,12 +172,13 @@ unsigned char read_byte(unsigned int address){
  */
 void write_byte(unsigned int address,unsigned char value){
   unsigned int tag = getTag(address);
-  unsigned int index = getIndex(address);
+  unsigned int index = find_set(address);
   unsigned int offset = getOffset(address);
   unsigned int way = search_in_cache(index,tag);
 
   if(cache.was_hit){
     update_lru(index,way);
+    cache.blocks[index][way].dirty = true;
     cache.blocks[index][way].data[offset] = value;
     return;
   }
@@ -191,6 +188,7 @@ void write_byte(unsigned int address,unsigned char value){
   read_block(address/cache.blocksize);
   cache.blocks[index][way].tag = tag;
   update_lru(index,way);
+  cache.blocks[index][way].dirty = true;
   cache.blocks[index][way].data[offset] = value;
 }
 
