@@ -3,8 +3,6 @@
 #include <string.h>
 #include <math.h>
 
-#define BITS_DIRECCION 16
-
 typedef struct main_memory{
   unsigned char data[TAMANIO_MEMORIA_PRINCIPAL];
 }main_memory_t;

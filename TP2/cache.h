@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #define TAMANIO_MEMORIA_PRINCIPAL (64*1024)
+#define BITS_DIRECCION 16
 
 typedef struct block{
   unsigned int lru;

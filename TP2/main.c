@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <math.h>
 #include "cache.h"
 
 #define OUTPUT 'o'
@@ -122,6 +123,12 @@ configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],cha
   return configuracion;
 }
 
+bool excedeRango(int vias,int tamanioCache,int tamanioBloque){
+  unsigned short bitsOffset = ceil(log(tamanioBloque)/log(2));
+  unsigned short bitsIndex = ceil(log((tamanioCache * KILOBYTE)/(vias*tamanioBloque))/log(2));
+  unsigned short bitsTag = (BITS_DIRECCION - bitsOffset - bitsIndex);
+  return (bitsOffset + bitsIndex + bitsTag)>BITS_DIRECCION || bitsIndex == 0;
+}
 
 int parsearArchivo(FILE* fileInput,FILE* fileOutput){
   const char delimitadorEspacio[2] = " ",delimitadorComa[3] = ", ";
@@ -217,12 +224,14 @@ void destruirCache(){
 
 
 int main(int cantidadArgumentos, char* argumentos[]){
-  int estado = 0;
   char archivoInput[MAX_NOMBRE_ARCHIVO] = "";
+  int estado = 0;
+
   if(cantidadArgumentos == 1){
     fprintf(stderr, "No se enviaron argumentos. Puede ver ayuda mandando -h\n");
     return ERROR;
   }
+
   configuracion_t configuracion = manejarParametros(cantidadArgumentos,argumentos,archivoInput);
   if(configuracion.pidioOtraOpcion){
     return estado;
@@ -240,15 +249,26 @@ int main(int cantidadArgumentos, char* argumentos[]){
     return ERROR;
   }
 
+  if(excedeRango(configuracion.vias,configuracion.tamanioCache,configuracion.tamanioBloque)){
+    fprintf(stderr, "Los parametros enviados exceden la representacion que se tiene en la cache (16 bits)\n");
+    return ERROR;
+  }
+
   FILE* fileInput = fopen(archivoInput,MODO_LECTURA);
   if(fileInput==NULL){
       fprintf(stderr, "No se pudo abrir el archivo de entrada.\n");
+      if(configuracion.salida!=stdout){
+        fclose(configuracion.salida);
+      }
       return ERROR;
   }
 
   estado = inicializarCache(configuracion);
   if(estado == ERROR){
     fclose(fileInput);
+    if(configuracion.salida!=stdout){
+      fclose(configuracion.salida);
+    }
     return estado;
   }
 
