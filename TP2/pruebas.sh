@@ -20,7 +20,7 @@ espacios
 	prueba=$(./tp -c 16 -w 1 -b 128 prueba1.mem )
 	echo $prueba
 
-    echo -e "\e[1m PRUEBA 2 - Configuracion 1 \e[0m"  
+    	echo -e "\e[1m PRUEBA 2 - Configuracion 1 \e[0m"  
 	echo
 
 	prueba=$(./tp -c 4 -w 4 -b 32 prueba2.mem )
@@ -32,7 +32,7 @@ espacios
 	prueba=$(./tp -c 16 -w 1 -b 128 prueba2.mem )
 	echo $prueba
 
-    echo -e "\e[1m PRUEBA 3 - Configuracion 1 \e[0m"  
+    	echo -e "\e[1m PRUEBA 3 - Configuracion 1 \e[0m"  
 	echo
 
 	prueba=$(./tp -c 4 -w 4 -b 32 prueba3.mem )
@@ -44,7 +44,7 @@ espacios
 	prueba=$(./tp -c 16 -w 1 -b 128 prueba3.mem )
 	echo $prueba
 
-    echo -e "\e[1m PRUEBA 4 - Configuracion 1 \e[0m"  
+    	echo -e "\e[1m PRUEBA 4 - Configuracion 1 \e[0m"  
 	echo
 
 	prueba=$(./tp -c 4 -w 4 -b 32 prueba4.mem )
@@ -56,7 +56,7 @@ espacios
 	prueba=$(./tp -c 16 -w 1 -b 128 prueba4.mem )
 	echo $prueba
 
-    echo -e "\e[1m PRUEBA 5 - Configuracion 1 \e[0m"  
+   	echo -e "\e[1m PRUEBA 5 - Configuracion 1 \e[0m"  
 	echo
 
 	prueba=$(./tp -c 4 -w 4 -b 32 prueba5.mem )
