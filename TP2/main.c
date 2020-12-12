@@ -129,6 +129,7 @@ int parsearArchivo(FILE* fileInput,FILE* fileOutput){
   while(0<leidos){
     if(strcmp(buffer,"init")==0 || strcmp(buffer,"init\r")==0){
       init();
+      fprintf(fileOutput, "Se inicializa la cache\n");
     }
     else if(buffer[0] == READ_BYTE || buffer[0] == WRITE_BYTE){
       char* instruccion = strtok(buffer,delimitadorEspacio);
@@ -136,14 +137,16 @@ int parsearArchivo(FILE* fileInput,FILE* fileOutput){
       direccionALeer = atoi(primerNumero);
       if(buffer[0] == READ_BYTE){
         unsigned char valor = read_byte(direccionALeer);
-        fprintf(fileOutput, "El valor obtenido fue: %c (%d)\n", valor,valor);
+        fprintf(fileOutput, "Se lee el byte en la direccion: %i\n",direccionALeer);
+        fprintf(fileOutput, "* El valor obtenido fue: %c (%d)\n", valor,valor);
       }
       else{
         char* valor = strtok(NULL,delimitadorComa);
         caracter = atoi(valor);
         write_byte(direccionALeer,caracter);
+        fprintf(fileOutput, "Se escribe el caracter %d en %i\n", caracter,direccionALeer);
       }
-      fprintf(fileOutput, "El resultado de la operacion fue: %s\n", cache.was_hit?"HIT":"MISS");
+      fprintf(fileOutput, "* El resultado de la operacion fue: %s\n", cache.was_hit?"HIT":"MISS");
     }
     else if(strcmp(buffer,"MR")==0 || strcmp(buffer,"MR\r")==0){
       int missRate = get_miss_rate();
