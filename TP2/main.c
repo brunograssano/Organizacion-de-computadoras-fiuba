@@ -46,7 +46,9 @@ void mostrarAyuda(){
   printf(" -c, --cachesize  Tamanio del cache en kilobytes\n");
   printf(" -b, --blocksize  Tamanio del bloque en bytes\n");
   printf("Ejemplos: \n");
-  printf(" tp2 -w 4 -c 8 -b 16 prueba1.mem \n");
+  printf(" tp -w 4 -c 8 -b 16 prueba1.mem \n");
+  printf(" tp -w 1 -c 4 -b 128 prueba1.mem \n");
+  printf(" tp -w 1 -c 4 -b 32 -o salida prueba1.mem \n");
 }
 
 void mostrarVersion(){
@@ -54,7 +56,7 @@ void mostrarVersion(){
 }
 
 void determinarSalida(configuracion_t* configuracion,char* argumentos[]){
-  configuracion->salida = fopen(argumentos[optind],MODO_ESCRITURA);
+  configuracion->salida = fopen(optarg,MODO_ESCRITURA);
   if(configuracion->salida == NULL){
     fprintf(stderr, "No se pudo abrir el archivo enviado para salida, el resultado se mostrara por stdout\n");
     configuracion->salida = stdout;
