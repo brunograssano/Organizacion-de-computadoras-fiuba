@@ -3,7 +3,6 @@
 #include <string.h>
 #include <math.h>
 
-#define TAMANIO_MEMORIA_PRINCIPAL (64*1024)
 #define BITS_DIRECCION 16
 
 typedef struct main_memory{
@@ -60,6 +59,7 @@ int search_in_cache(unsigned int index,unsigned int tag){
 
 /////------------------------------MAIN------------------------------/////
 
+
 void init(){
   cache.misses = 0;
   cache.hits = 0;
@@ -72,6 +72,7 @@ void init(){
   }
 }
 
+
 /* La función find set(int address) debe devolver el conjunto de caché al que mapea la dirección address.
  */
 unsigned int find_set(unsigned int address){
@@ -82,6 +83,7 @@ unsigned int find_set(unsigned int address){
   index = index >> (offset_bits + tag_bits) ;
   return index;
 }
+
 
 /* La función find lru(int setnum) debe devolver el bloque menos recientemente usado dentro de un conjunto (o alguno de ellos si hay más
  * de uno), utilizando el campo correspondiente de los metadatos de los
@@ -104,11 +106,13 @@ unsigned int find_lru(unsigned int setnum){
   return lru_block;
 }
 
+
 /* La función is dirty(int way, int setnum) debe devolver el estado del bit D del bloque correspondiente.
  */
 unsigned int is_dirty(unsigned int way,unsigned int setnum){
   return (unsigned int)cache.blocks[setnum][way].dirty;
 }
+
 
 /* La función read block(int blocknum) debe leer el bloque blocknum
  * de memoria y guardarlo en el lugar que le corresponda en la memoria
@@ -128,6 +132,7 @@ void read_block(unsigned int blocknum){
   cache.blocks[set][way].valid = true;
   cache.blocks[set][way].lru = 0;
 }
+
 
 /* La función write block(int way, int setnum) debe escribir en memoria
  * los datos contenidos en el bloque setnum de la vı́a way.
@@ -166,6 +171,7 @@ unsigned char read_byte(unsigned int address){
   return cache.blocks[index][way].data[offset];
 }
 
+
 /* La función write byte(int address, char value) debe escribir el
  * valor value en la posición correcta del bloque que corresponde a
  * address
@@ -191,6 +197,7 @@ void write_byte(unsigned int address,unsigned char value){
   cache.blocks[index][way].dirty = true;
   cache.blocks[index][way].data[offset] = value;
 }
+
 
 /* La función get miss rate() debe devolver el porcentaje de misses desde que se inicializó el cache.
  */

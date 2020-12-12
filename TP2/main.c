@@ -60,6 +60,9 @@ void determinarSalida(configuracion_t* configuracion,char* argumentos[]){
   }
 }
 
+bool esPotenciaDeDos(unsigned int numero){
+  return numero && (!(numero & (numero-1)));
+}
 
 configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],char archivoInput[MAX_NOMBRE_ARCHIVO]){
   static struct option opcionesLargas[] = {
@@ -119,14 +122,16 @@ configuracion_t manejarParametros(int cantidadArgumentos, char* argumentos[],cha
   return configuracion;
 }
 
+
 int parsearArchivo(FILE* fileInput,FILE* fileOutput){
-  const char delimitadorEspacio[2] = " ";
-  const char delimitadorComa[3] = ", ";
+  const char delimitadorEspacio[2] = " ",delimitadorComa[3] = ", ";
   char buffer[MAX_NOMBRE_ARCHIVO] = "";
   unsigned int direccionALeer = 0,caracter = 0;
+  int estado = 0;
+
   init();
   int leidos = fscanf(fileInput,"%[^\n]\r\n",buffer);
-  while(0<leidos){
+  while(0<leidos && estado!=ERROR){
     if(strcmp(buffer,"init")==0 || strcmp(buffer,"init\r")==0){
       init();
       fprintf(fileOutput, "Se inicializa la cache\n");
@@ -135,6 +140,11 @@ int parsearArchivo(FILE* fileInput,FILE* fileOutput){
       char* instruccion = strtok(buffer,delimitadorEspacio);
       char* primerNumero = strtok(NULL,delimitadorComa);
       direccionALeer = atoi(primerNumero);
+      if(direccionALeer >= TAMANIO_MEMORIA_PRINCIPAL){
+        fprintf(stderr, "La direccion %i se excede del rango de la memoria\n",direccionALeer);
+        estado = ERROR;
+      }
+
       if(buffer[0] == READ_BYTE){
         unsigned char valor = read_byte(direccionALeer);
         fprintf(fileOutput, "Se lee el byte en la direccion: %i\n",direccionALeer);
@@ -155,8 +165,9 @@ int parsearArchivo(FILE* fileInput,FILE* fileOutput){
     strcpy(buffer,"");
     leidos = fscanf(fileInput,"%[^\n]\n",buffer);
   }
-  return 0;
+  return estado;
 }
+
 
 int inicializarCache(configuracion_t configuracion){
   cache.cachesize = configuracion.tamanioCache * KILOBYTE;
@@ -169,6 +180,7 @@ int inicializarCache(configuracion_t configuracion){
     fprintf(stderr, "Ocurrio un error al alocar la memoria.\n");
     return ERROR;
   }
+
   for(int i=0;i<cache.sets;i++){
     cache.blocks[i] = calloc(cache.ways,sizeof(block_t));
     if(cache.blocks[i] == NULL){
@@ -188,6 +200,7 @@ int inicializarCache(configuracion_t configuracion){
   }
   return 0;
 }
+
 
 void destruirCache(){
   for(int i=0;i<cache.sets;i++){
@@ -220,16 +233,22 @@ int main(int cantidadArgumentos, char* argumentos[]){
     return ERROR;
   }
 
+  if(!(esPotenciaDeDos(configuracion.vias) &&
+       esPotenciaDeDos(configuracion.tamanioCache) &&
+       esPotenciaDeDos(configuracion.tamanioBloque))){
+    fprintf(stderr, "No se pueden enviar por entrada valores que no sean potencias de 2.\n");
+    return ERROR;
+  }
+
   FILE* fileInput = fopen(archivoInput,MODO_LECTURA);
   if(fileInput==NULL){
       fprintf(stderr, "No se pudo abrir el archivo de entrada.\n");
       return ERROR;
   }
 
-  //REVISAR QUE SEAN VALORES VALIDOS
-
   estado = inicializarCache(configuracion);
   if(estado == ERROR){
+    fclose(fileInput);
     return estado;
   }
 

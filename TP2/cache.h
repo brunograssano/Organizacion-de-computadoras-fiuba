@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#define TAMANIO_MEMORIA_PRINCIPAL (64*1024)
+
 typedef struct block{
   unsigned int lru;
   bool dirty;
