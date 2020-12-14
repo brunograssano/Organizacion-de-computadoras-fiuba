@@ -2,7 +2,6 @@
 #define __MI_ASSERT_H__
 #include <stdio.h>
 #include <stdbool.h>
-#define MAX_VECTOR 300
 #define assert(resultado,mensaje,contador) mi_assert(resultado,mensaje,&contador,__FILE__, __LINE__)
 
 /* Muestra el resultado general de la prueba
