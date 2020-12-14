@@ -1,31 +1,26 @@
 #ifndef __CACHE_H__
 #define __CACHE_H__
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
 #define TAMANIO_MEMORIA_PRINCIPAL (64*1024)
 #define BITS_DIRECCION 16
 
-typedef struct block{
-  unsigned int lru;
-  bool dirty;
-  bool valid;
-  unsigned int tag;
-  unsigned char* data;
-}block_t;
+typedef struct configuracion{
+  bool pidioOtraOpcion;
+  int vias;
+  int tamanioCache;
+  int tamanioBloque;
+  FILE* salida;
+}configuracion_t;
 
-typedef struct cache{
-  bool was_hit;
-  unsigned int misses;
-  unsigned int hits;
-  unsigned int cachesize;
-  unsigned int blocksize;
-  unsigned int ways;
-  unsigned int sets;
-  block_t** blocks;
-}cache_t;
+int set_up_cache(configuracion_t configuracion);
 
-cache_t cache;
+void destroy_cache();
+
+bool was_hit();
 
 void init();
 

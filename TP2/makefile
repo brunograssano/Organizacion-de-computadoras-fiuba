@@ -6,8 +6,10 @@ CFLAGS += -Wpointer-arith -Wunreachable-code -Wformat=2
 CFLAGS += -pedantic
 
 tp: main.c cache.c cache.h
-		$(CC) $(CFLAGS) *.c -o tp -lm
+		$(CC) $(CFLAGS) main.c cache.c -o tp -lm
 
+test: cache.c cache.h tests.c mi_assert.c mi_assert.h
+		$(CC) $(CFLAGS) tests.c cache.c  mi_assert.c -o tests -lm
 
 .PHONY : clean
 

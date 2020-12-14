@@ -1,14 +1,34 @@
 #include "cache.h"
-#include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#define KILOBYTE 1024
+#define ERROR -1
 
 typedef struct main_memory{
   unsigned char data[TAMANIO_MEMORIA_PRINCIPAL];
 }main_memory_t;
 
-main_memory_t main_memory;
+typedef struct block{
+  unsigned int lru;
+  bool dirty;
+  bool valid;
+  unsigned int tag;
+  unsigned char* data;
+}block_t;
 
+typedef struct cache{
+  bool was_hit;
+  unsigned int misses;
+  unsigned int hits;
+  unsigned int cachesize;
+  unsigned int blocksize;
+  unsigned int ways;
+  unsigned int sets;
+  block_t** blocks;
+}cache_t;
+
+cache_t cache;
+main_memory_t main_memory;
 /////------------------------------AUX------------------------------/////
 
 void update_lru(unsigned int index,unsigned int way){
@@ -53,6 +73,55 @@ int search_in_cache(unsigned int index,unsigned int tag){
     }
   }
   return way;
+}
+
+int set_up_cache(configuracion_t configuracion){
+  cache.cachesize = configuracion.tamanioCache * KILOBYTE;
+  cache.blocksize = configuracion.tamanioBloque;
+  cache.ways = configuracion.vias;
+  cache.sets = cache.cachesize/(cache.ways*cache.blocksize);
+
+  cache.blocks = calloc(cache.sets,sizeof(block_t*));
+  if(cache.blocks == NULL){
+    fprintf(stderr, "Ocurrio un error al alocar la memoria.\n");
+    return ERROR;
+  }
+
+  for(int i=0;i<cache.sets;i++){
+    cache.blocks[i] = calloc(cache.ways,sizeof(block_t));
+    if(cache.blocks[i] == NULL){
+      fprintf(stderr, "Ocurrio un error al alocar la memoria.\n");
+      return ERROR;
+    }
+  }
+
+  for(int i=0;i<cache.sets;i++){
+    for(int j=0;j<cache.ways;j++){
+      cache.blocks[i][j].data = calloc(cache.blocksize,sizeof(char));
+      if(cache.blocks[i][j].data == NULL){
+        fprintf(stderr, "Ocurrio un error al alocar la memoria.\n");
+        return ERROR;
+      }
+    }
+  }
+  return 0;
+}
+
+void destroy_cache(){
+  for(int i=0;i<cache.sets;i++){
+    for(int j=0;j<cache.ways;j++){
+      free(cache.blocks[i][j].data);
+    }
+  }
+
+  for(int i=0;i<cache.sets;i++){
+    free(cache.blocks[i]);
+  }
+  free(cache.blocks);
+}
+
+bool was_hit(){
+  return cache.was_hit;
 }
 
 /////------------------------------MAIN------------------------------/////

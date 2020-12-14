@@ -25,14 +25,6 @@
 #define KILOBYTE 1024
 const int ERROR = -1, VACIO=0, TERMINO = -1;
 
-typedef struct configuracion{
-  bool pidioOtraOpcion;
-  int vias;
-  int tamanioCache;
-  int tamanioBloque;
-  FILE* salida;
-}configuracion_t;
-
 void mostrarAyuda(){
   printf("Uso: \n");
   printf(" tp -h\n");
@@ -165,7 +157,7 @@ int parsearArchivo(FILE* fileInput,FILE* fileOutput){
         write_byte(direccionALeer,caracter);
         fprintf(fileOutput, "Se escribe el caracter %d en %i\n", caracter,direccionALeer);
       }
-      fprintf(fileOutput, "* El resultado de la operacion fue: %s\n", cache.was_hit?"HIT":"MISS");
+      fprintf(fileOutput, "* El resultado de la operacion fue: %s\n", was_hit()?"HIT":"MISS");
     }
     else if(strcmp(buffer,"MR")==0 || strcmp(buffer,"MR\r")==0){
       int missRate = get_miss_rate();
@@ -175,53 +167,6 @@ int parsearArchivo(FILE* fileInput,FILE* fileOutput){
     leidos = fscanf(fileInput,"%[^\n]\n",buffer);
   }
   return estado;
-}
-
-
-int inicializarCache(configuracion_t configuracion){
-  cache.cachesize = configuracion.tamanioCache * KILOBYTE;
-  cache.blocksize = configuracion.tamanioBloque;
-  cache.ways = configuracion.vias;
-  cache.sets = cache.cachesize/(cache.ways*cache.blocksize);
-
-  cache.blocks = calloc(cache.sets,sizeof(block_t*));
-  if(cache.blocks == NULL){
-    fprintf(stderr, "Ocurrio un error al alocar la memoria.\n");
-    return ERROR;
-  }
-
-  for(int i=0;i<cache.sets;i++){
-    cache.blocks[i] = calloc(cache.ways,sizeof(block_t));
-    if(cache.blocks[i] == NULL){
-      fprintf(stderr, "Ocurrio un error al alocar la memoria.\n");
-      return ERROR;
-    }
-  }
-
-  for(int i=0;i<cache.sets;i++){
-    for(int j=0;j<cache.ways;j++){
-      cache.blocks[i][j].data = calloc(cache.blocksize,sizeof(char));
-      if(cache.blocks[i][j].data == NULL){
-        fprintf(stderr, "Ocurrio un error al alocar la memoria.\n");
-        return ERROR;
-      }
-    }
-  }
-  return 0;
-}
-
-
-void destruirCache(){
-  for(int i=0;i<cache.sets;i++){
-    for(int j=0;j<cache.ways;j++){
-      free(cache.blocks[i][j].data);
-    }
-  }
-
-  for(int i=0;i<cache.sets;i++){
-    free(cache.blocks[i]);
-  }
-  free(cache.blocks);
 }
 
 
@@ -265,7 +210,7 @@ int main(int cantidadArgumentos, char* argumentos[]){
       return ERROR;
   }
 
-  estado = inicializarCache(configuracion);
+  estado = set_up_cache(configuracion);
   if(estado == ERROR){
     fclose(fileInput);
     if(configuracion.salida!=stdout){
@@ -276,7 +221,7 @@ int main(int cantidadArgumentos, char* argumentos[]){
 
   estado = parsearArchivo(fileInput,configuracion.salida);
 
-  destruirCache();
+  destroy_cache();
 
   fclose(fileInput);
   if(configuracion.salida!=stdout){
