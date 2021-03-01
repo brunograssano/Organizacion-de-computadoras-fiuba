@@ -1,0 +1,88 @@
+Seleccionar los tests individualmente y copiarlos a la seccion 'Code' de DrMIPS
+
+
+########################################
+
+# Test 01
+
+addi $t1,$zero,salto
+addi $t0,$zero,1
+jalr $ra,$t1
+vuelta:
+addi $t0,$t0,1
+addi $t0,$t0,1
+addi $t0,$t0,1
+addi $t0,$t0,1
+# Terminar ejecucion
+
+salto:
+addi $t0,$t0,1
+addi $t0,$t0,1
+addi $t0,$t0,1
+jr $ra
+
+########################################
+
+# Test 02
+
+addi $t1,$zero,salto
+addi $t0,$zero,1
+sw $t0,0($zero)
+lw $t0,0($zero)
+jalr $ra,$t1
+vuelta:
+addi $t0,$t0,1
+addi $t0,$t0,1
+addi $t0,$t0,1
+addi $t0,$t0,1
+# Terminar ejecucion
+
+salto:
+addi $t0,$t0,1
+addi $t0,$t0,1
+addi $t0,$t0,1
+sw $t0,0($zero)
+lw $t0,0($zero)
+jr $ra
+
+
+########################################
+
+# Test 03
+
+addi $t1,$zero,salto
+addi $t0,$zero,1
+beq $zero,$zero,1 # saltea al jalr
+jalr $ra,$t1
+salto:
+addi $t0,$t0,1
+addi $t0,$t0,1
+beq $zero,$zero,1 # saltea el jump
+jr $ra
+addi $t0,$t0,1
+addi $t0,$t0,1
+# Terminar ejecucion
+
+########################################
+
+
+# Test 03
+
+addi $t1,$zero,salto
+addi $t0,$zero,1
+beq $zero,$t1,1 # hace el salto
+jalr $ra,$t1
+# Vuelve con el jr, terminar ejecucion
+nop
+nop
+nop
+salto:
+addi $t0,$t0,1
+addi $t0,$t0,1
+beq $zero,$t1,1 
+jr $ra 		# toma el salto
+addi $t0,$t0,1
+addi $t0,$t0,1
+
+
+########################################
