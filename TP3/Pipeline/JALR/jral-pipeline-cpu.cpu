@@ -67,12 +67,13 @@
 		"ForkDst2":   {"type": "Fork", "x": 705, "y": 440, "size": 5, "in": "In", "out": ["Out1", "Out2"]},
 		"ForkMemR1":  {"type": "Fork", "x": 416, "y": 480, "size": 32, "in": "In", "out": ["Out1", "Out2"]},
 
-		"OrJumpReg":  {"type": "Or", "x": 475, "y": 30, "in1": "AndBranch", "in2": "JumpRegID/EX", "out": "Out"},
-		"MuxPC2":     {"type": "Multiplexer", "latency": 15, "x": 15, "y": 320, "size": 32, "sel": "Branch", "in": ["0", "1"], "out": "Out", "desc": {"default": "Selects PC+4 or the branch address as the new PC.", "pt": "Selecciona o PC+4 ou o endereço de branch como novo PC."}},
+
+		"OrJumpReg":  {"type": "Or", "x": 450, "y": 35, "in1": "AndBranch", "in2": "JumpRegID/EX", "out": "Out"},
+		"MuxPC2":     {"type": "Multiplexer", "latency": 15, "x": 20, "y": 300, "size": 32, "sel": "Branch", "in": ["0", "1"], "out": "Out", "desc": {"default": "Selects PC+4 or the branch address as the new PC.", "pt": "Selecciona o PC+4 ou o endereço de branch como novo PC."}},
 		"ForkJR":     {"type": "Fork", "x": 455, "y": 250, "size": 32, "in": "In", "out": ["Out1", "Out2"]},
 
 		"ForkAdder":  {"type": "Fork", "x": 420, "y": 175, "size": 32, "in": "In", "out": ["Out1", "Out2"]},
-		"ForkSelect":  {"type": "Fork", "x": 420, "y": 165, "size": 1, "in": "In", "out": ["Out1", "Out2"]},
+		"ForkSelect":  {"type": "Fork", "x": 432, "y": 165, "size": 1, "in": "In", "out": ["Out1", "Out2"]},
 
 	},
 	"wires": [
@@ -145,7 +146,7 @@
 		{"from": "MuxDst", "out": "Out", "to": "EX/MEM", "in": "RegBankDst", "end": {"x": 550, "y": 387}},
 
 		{"from": "ID/EX", "out": "NewPC", "to": "ForkAdder", "in": "In", "start": {"x": 405, "y": 175}},
-		{"from": "ForkAdder", "out": "Out1", "to": "MuxFwdA/PC", "in": "1"},
+		{"from": "ForkAdder", "out": "Out1", "to": "MuxFwdA/PC", "in": "1", "points": [{"x": 420, "y": 212}]},
 		{"from": "ForkAdder", "out": "Out2", "to": "AddBranch", "in": "In1"},
 		{"from": "MuxFwdA/PC", "out":"Out", "to": "ALU", "in":"In1"},
 
@@ -209,22 +210,23 @@
 
 		{"from": "Control", "out":"JumpReg", "to":"ID/EX", "in":"JumpReg", "start": {"x": 290, "y": 120}, "end": {"x": 390, "y": 120}},
 
-		{"from": "ID/EX", "out":"JumpReg", "to":"ForkSelect", "in":"In"},
-		{"from": "ForkSelect", "out": "Out1", "to": "OrJumpReg", "in": "JumpRegID/EX"},
+		{"from": "ID/EX", "out":"JumpReg", "to":"ForkSelect", "in":"In", "end": {"x": 4350, "y": 165}, "start": {"x": 390, "y": 165}},
+		{"from": "ForkSelect", "out": "Out1", "to": "OrJumpReg", "in": "JumpRegID/EX", "points": [{"x": 470, "y": 165}], "end": {"x": 470, "y": 60} },
 		{"from": "ForkSelect", "out": "Out2", "to": "MuxFwdA/PC", "in": "Jral"},
 
-		{"from": "ForkBr1", "out": "Out1", "to": "OrJumpReg", "in": "AndBranch"},
+		{"from": "ForkBr1", "out": "Out1", "to": "OrJumpReg", "in": "AndBranch", "end":{"x": 455, "y": 62}},	
 
-		{"from": "OrJumpReg", "out": "Out", "to": "ForkBr2", "in":"In"},
+		{"from": "OrJumpReg", "out": "Out", "to": "ForkBr2", "in":"In", "start":{"x": 455, "y": 62}},
 		{"from": "MuxFwdA", "out": "Out", "to": "ForkJR", "in": "In", "start": {"x": 440, "y": 250}},
 
 
-		{"from": "ForkJR", "out": "Out1", "to": "MuxFwdA/PC", "in": "0"},
+		{"from": "ForkJR", "out": "Out1", "to": "MuxFwdA/PC", "in": "0", "points": [{"x": 455, "y": 228}, {"x": 415, "y": 228}, {"x": 415, "y": 201}]},
 
-		{"from": "ForkJR", "out": "Out2", "to": "MuxPC2", "in":"0", "points":[{"x": 455, "y": 340}]},
-		{"from": "ForkBr1", "out": "Out3", "to": "MuxPC2", "in":"Branch"},
-		{"from": "EX/MEM", "out": "Target", "to": "MuxPC2", "in": "1", "start": {"x": 565, "y": 181}, "points": [{"x": 575, "y": 181}, {"x": 575, "y": 67}, {"x": 5, "y": 67}, {"x": 5, "y": 270}]},
-		{"from": "MuxPC2", "out":"Out", "to":"MuxPC", "in":"1"},
+		{"from": "ForkJR", "out": "Out2", "to": "MuxPC2", "in":"0", "points":[{"x": 455, "y": 402},{"x":406, "y": 402}, {"x":406, "y": 430}, {"x":10, "y": 430}, {"x":10, "y": 311}]},
+		{"from": "ForkBr1", "out": "Out3", "to": "MuxPC2", "in":"Branch", "points": [{"x":555, "y": 0}, {"x":32, "y": 0}], "end": {"x":32, "y": 300}},
+		{"from": "EX/MEM", "out": "Target", "to": "MuxPC2", "in": "1", "start": {"x": 565, "y": 181}, "points": [{"x": 575, "y": 181}, {"x": 575, "y": 67}, {"x": 5, "y": 67}, {"x": 5, "y": 322}]},
+		{"from": "MuxPC2", "out":"Out", "to":"MuxPC", "in":"1", "points": [{"x":50, "y": 317}, {"x":50, "y": 290}, {"x":10, "y": 290}, {"x":10, "y": 270}]},
+
 
 
 	],
