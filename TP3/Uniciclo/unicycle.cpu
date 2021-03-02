@@ -31,9 +31,9 @@
 		"MuxMem":     {"type": "Multiplexer", "latency": 15, "x": 580, "y": 270, "size": 32, "sel": "MemToReg", "in": ["0", "1"], "out": "Out", "desc": {"default": "Selects the result of the ALU or the value read from memory to write to the destination register (WriteData).", "pt": "Selecciona o resultado da ALU ou o valor lido da memória para escrever no registo de destino (WriteData)."}},
 
 		"MuxJalr" :   {"type": "Multiplexer", "latency": 15, "x": 205, "y": 300, "size": 32, "sel": "JalReg", "out": "Out", "in": ["0", "1"], "desc": {"default": "Selects the instruction's rt or rd field as the destination register (WriteReg).", "pt": "Selecciona o campo rt ou rd da instrução como registo de destino (WriteReg)."}},
-		"MuxJump2":   {"type": "Multiplexer", "latency": 15, "x": 620, "y": 18, "size": 32, "sel": "HacerSalto", "in": ["0", "1"], "out": "Out", "desc": {"default": "Selecciona entre tomar un salto o seguir el camino normal", "pt": ""}},
-		"ForkJump":   {"type": "Fork", "x": 250, "y": 215, "size": 32, "in": "EntradaForkJump", "out": ["Out1", "Out2"]},
-		"ForkJalr":   {"type": "Fork", "x": 170, "y": 80, "size": 32, "in": "In", "out": ["Out1", "Out2"]},
+		"MuxJump2":   {"type": "Multiplexer", "latency": 15, "x": 620, "y": 18, "size": 32, "sel": "JumpReg", "in": ["0", "1"], "out": "Out", "desc": {"default": "Selecciona entre tomar un salto o seguir el camino normal", "pt": ""}},
+		"ForkJump":   {"type": "Fork", "x": 350, "y": 248, "size": 32, "in": "EntradaForkJump", "out": ["Out1", "Out2"]},
+		"ForkJalr":   {"type": "Fork", "x": 175, "y": 75, "size": 32, "in": "In", "out": ["Out1", "Out2"]},
 
 	},
 	"wires": [
@@ -65,15 +65,18 @@
 		{"from": "ConcatJump", "out": "Out", "to": "MuxJump", "in": "1"},
 
 
-		{"from": "MuxJump", "out": "Out", "to": "MuxJump2", "in": "0", "points": [{"x": 600, "y": 35}]},
+		{"from": "MuxJump", "out": "Out", "to": "MuxJump2", "in": "0", "start": {"x": 580, "y": 30}, "end":{"x": 620, "y": 30}},
 		{"from": "MuxJump2", "out": "Out", "to": "PC", "in": "NewPC", "points": [{"x": 620, "y": 35}, {"x": 640, "y": 35}, {"x": 640, "y": 10},{"x": 640, "y": 10},{"x": 30, "y": 10}, {"x": 30, "y": 265}]},
 		{"from": "RegBank","out":"ReadData1","to":"ForkJump","in":"EntradaForkJump","points":[]},
-		{"from": "ForkJump","out":"Out1","to":"ALU","in":"In1","points":[]},
-		{"from": "ForkJump","out":"Out2","to":"MuxJump2","in":"1","points":[]},
-		{"from": "ForkJalr","out":"Out1","to":"MuxJalr","in":"1","points":[]},
+		{"from": "ForkJump","out":"Out1","to":"ALU","in":"In1","end":{"x":400,"y":248}},
+		{"from": "ForkJump","out":"Out2","to":"MuxJump2","in":"1","points":[{"x": 350, "y": 218}, {"x": 610, "y": 218}, {"x": 610, "y": 40}]},
+
+		{"from": "ForkJalr","out":"Out1","to":"MuxJalr","in":"1","points":[{"x": 175, "y": 322}]},
+
 		{"from": "PCAdder","out":"PC+4","to":"ForkJalr","in":"In","points":[]},
+
 		{"from": "ForkJalr", "out": "Out2", "to": "DistPC", "in": "In"},
-		{"from": "MuxJalr", "out": "Out", "to":"RegBank", "in":"WriteData"},	
+		{"from": "MuxJalr", "out": "Out", "to":"RegBank", "in":"WriteData", "points":[{"x": 235, "y": 317}, {"x": 235, "y": 297}], "end":  {"x": 250, "y": 297}},	
 
 		{"from": "Control", "out": "Jump", "to": "MuxJump", "in": "Jump", "start": {"x": 280, "y": 140}, "points": [{"x": 587, "y": 140}], "end": {"x": 587, "y": 53}},
 		{"from": "DistImm", "out": "5-0", "to": "ALUControl", "in": "func", "points": [{"x": 265, "y": 360}, {"x": 265, "y": 380}, {"x": 350, "y": 380}, {"x": 350, "y": 350}]},
@@ -97,10 +100,10 @@
 		{"from": "Control", "out": "MemToReg", "to": "MuxMem", "in": "MemToReg", "start": {"x": 280, "y": 150}, "points": [{"x": 587, "y": 150}]},
 		{"from": "DataMem", "out": "ReadData", "to": "MuxMem", "in": "1"},
 		{"from": "ForkMem", "out": "Out2", "to": "MuxMem", "in": "0", "points": [{"x": 470, "y": 352}, {"x": 570, "y": 352}, {"x": 570, "y": 281}]},
-		{"from": "MuxMem", "out": "Out", "to": "MuxJalr", "in": "0", "points": [{"x": 600, "y": 287}, {"x": 600, "y": 400}, {"x": 200, "y": 400}]},
+		{"from": "MuxMem", "out": "Out", "to": "MuxJalr", "in": "0", "points": [{"x": 600, "y": 287}, {"x": 600, "y": 400}, {"x": 200, "y": 400}, {"x": 200, "y": 311}]},
 
-		{"from": "Control", "out": "JumpReg", "to": "MuxJump2", "in": "HacerSalto"},
-		{"from": "Control", "out": "JalReg", "to": "MuxJalr", "in": "JalReg"},		
+		{"from": "Control", "out": "JumpReg", "to": "MuxJump2", "in": "JumpReg", "points":[{"x": 627,"y": 158}]},
+		{"from": "Control", "out": "JalReg", "to": "MuxJalr", "in": "JalReg", "points":[{"x": 227,"y": 193},{"x": 227,"y": 296}, {"x": 212,"y": 296}]},		
 	],
 	"reg_names": ["zero", "at", "v0", "v1", "a0", "a1", "a2", "a3", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7", "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7", "t8", "t9", "k0", "k1", "gp", "sp", "fp", "ra"],
 	"instructions": "default.set"
