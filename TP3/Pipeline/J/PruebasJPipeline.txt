@@ -1,0 +1,62 @@
+########################################
+
+#Test 01
+
+test:
+addi $t0, $zero, 100
+beq $t0,$t0, test 
+j error
+error: addi $t1,$zero,1
+# No agarro el salto, agarro el branch
+# Si $t1 = 1, entonces hubo un error
+
+########################################
+
+#Test 02
+
+addi $t0, $zero, 1
+addi $t0, $t0, 2
+addi $t0, $t0, 3
+addi $t0, $t0, 4
+j test
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+test:
+addi $t0, $t0, 1
+addi $t0, $t0, 2
+addi $t0, $t0, 3
+addi $t0, $t0, 4
+# Si $t1 != 0, entonces hubo un error
+
+########################################
+
+#Test 03
+addi $t0, $zero, 1
+sw $t0,0($zero)
+lw $t0,0($zero)
+j test
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+addi $t1,$zero,1
+test:
+addi $t0, $t0, 1
+addi $t0, $t0, 2
+addi $t0, $t0, 3
+addi $t0, $t0, 4
+# Si $t1 != 0, entonces hubo un error
+# La posicion de memoria 0 va a tener un 1
+
+########################################
